@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:a="http://www.loc.gov/standards/alto/ns-v3#" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:output method="text"/>
+
+<xsl:strip-space elements="*"/>    
+
+    <xsl:template match="/">
+        <xsl:apply-templates select="/a:alto/a:Layout/a:Page/a:PrintSpace"></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:PrintSpace">
+        <xsl:apply-templates></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:ComposedBlock">
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:apply-templates></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:TextBlock">
+        <xsl:text>&#xa;&#xa;</xsl:text>
+        <xsl:apply-templates></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:TextLine">
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:apply-templates></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:String[@SUBS_TYPE = 'HypPart1']">
+        <xsl:apply-templates select="@SUBS_CONTENT"></xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="a:String[@SUBS_TYPE = 'HypPart2']">
+    </xsl:template>
+
+    <xsl:template match="a:String[not(@SUBS_TYPE = 'HypPart1' or @SUBS_TYPE = 'HypPart2')]">
+        <xsl:value-of select="@CONTENT"/>
+        <!--<xsl:apply-templates select="@SUBS_CONTENT"></xsl:apply-templates>-->
+    </xsl:template>
+
+    <xsl:template match="a:SP">
+        <xsl:text> </xsl:text>
+    </xsl:template>
+
+    <!--<xsl:template match="a:HYP">
+        <xsl:value-of select="@CONTENT"/>
+    </xsl:template>-->
+
+    <xsl:template match="@SUBS_CONTENT">
+        <xsl:value-of select="."/>
+        <!--<xsl:text> </xsl:text>[ <xsl:value-of select="."/> ]<xsl:text> </xsl:text>-->
+    </xsl:template>
+    
+</xsl:stylesheet>
