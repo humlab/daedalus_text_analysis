@@ -7,7 +7,7 @@ from sklearn.preprocessing import Normalizer
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.decomposition import PCA
 from scipy.spatial.distance import pdist, squareform
-from topic_modelling.viz_utility import get_model_names, load_gensim_lda_model
+from topic_modelling.compute_topic_models.model_store import ModelStore as store
 import matplotlib as plt
 
 def vectorize_topic_terms(lda, n_words=100):
@@ -56,11 +56,11 @@ def plot_PCA_euclidean_distanc_network(coordinates, min_norm_weight=0.9):
 if __name__ == '__main__':
 
     source_folder = '/tmp'
-    models_names = get_model_names(source_folder)
+    models_names = store.get_model_names(source_folder)
 
     basename = models_names[-1]
     data_folder = os.path.join(source_folder, basename)
-    lda = load_gensim_lda_model(data_folder, basename)
+    lda = store.load_gensim_lda_model(data_folder, basename)
 
     coordinates = compute_PCA_euclidean_distances(lda)
     plot_PCA_euclidean_distanc_network(coordinates)

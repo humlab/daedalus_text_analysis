@@ -2,7 +2,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from topic_modelling.viz_utility import get_model_names, load_document_topics
+from topic_modelling.compute_topic_models.model_store import ModelStore as store
 
 def plot_yearly_distributions(df):
 
@@ -28,13 +28,13 @@ def plot_yearly_distributions(df):
 if __name__ == '__main__':
 
     source_folder = '/tmp'
-    models_names = get_model_names(source_folder)
+    models_names = store.get_model_names(source_folder)
 
     basename = models_names[-1]
     data_folder = os.path.join(source_folder, basename)
 
     if 'df_yearly_mean_topics' not in globals():
-        df_doc_topics = df = load_document_topics('/tmp', 'topics_50_NN_PM__no_chunks_iterations_2000_lowercase_keep_30000_no_below_dfs_5', True)
+        df_doc_topics = df = store.load_document_topics('/tmp', basename, True)
         df_yearly_mean_topics = df_doc_topics.groupby(['year', 'topic_id']).mean()[['weight']].reset_index()
 
     plot_yearly_distributions(df_yearly_mean_topics)

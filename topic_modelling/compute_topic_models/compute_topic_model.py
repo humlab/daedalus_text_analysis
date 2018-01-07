@@ -3,17 +3,15 @@
 import logging
 import os
 import re
-from gensim import corpora, models
-from gensim.models.wrappers import ldamallet
-from gensim.models.ldamodel import LdaModel
-from .. sparv_annotator import SparvCorpusReader
-import utility
+from gensim import corpora, models, matutils
+from . import SparvCorpusReader, SparvTextCorpus
 import pandas as pd
-import itertools
 import inspect
 import numpy as np
 import pyLDAvis
 import pyLDAvis.gensim
+from model_store import ModelStore as store
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 default_mallet_path = 'C:\\Usr\\mallet-2.0.8'
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
@@ -66,84 +64,7 @@ class MyLdaMallet(models.wrappers.LdaMallet):
         self.word_topics = self.load_word_topics()
         self.wordtopics = self.word_topics
 
-class DaedalusTextCorpus(corpora.TextCorpus):
-
-    def __init__(self, archive_name, pos_tags="'|NN|'", chunk_size=1000, lowercase=True, filter_extreme_args=None):
-
-        self.archive_name = archive_name
-        self.pos_tags = "'{}'".format(pos_tags)
-        self.xslt_filename = './extract_tokens.xslt'
-        self.reader = SparvCorpusReader(self.xslt_filename, archive_name, self.pos_tags, chunk_size, lowercase)
-        self.document_length = []
-        self.corpus_documents = []
-        self.filter_extreme_args = filter_extreme_args
-
-        super(DaedalusTextCorpus, self).__init__(input=True) #, token_filters=[])
-
-
-    def init_dictionary(self, dictionary):
-        #self.dictionary = corpora.Dictionary(self.getstream())
-        self.dictionary = corpora.Dictionary()
-        self.dictionary.add_documents(self.get_texts())
-        if self.filter_extreme_args is not None and isinstance(self.filter_extreme_args, dict):
-            self.dictionary.filter_extremes(**self.filter_extreme_args)
-            self.dictionary.compactify()
-
-    def getstream(self):
-        corpus_documents = []
-        document_length = []
-        for document_name, document in self.reader:
-            corpus_documents.append(document_name)
-            document_length.append(len(document))
-            yield document
-        self.document_length = document_length
-        self.corpus_documents = corpus_documents
-
-    def get_texts(self):
-        for document in self.getstream():
-            yield document
-
-    def get_total_word_count(self):
-        # Create the defaultdict: total_word_count
-        total_word_count = { word_id: 0 for word_id in self.dictionary.keys() }
-        for word_id, word_count in itertools.chain.from_iterable(self):
-            total_word_count[word_id] += word_count
-
-        # Create a sorted list from the defaultdict: sorted_word_count
-        sorted_word_count = sorted(total_word_count, key=lambda w: w[1], reverse=True)
-        return sorted_word_count
-
-    def get_corpus_document(self):
-        df = pd.DataFrame({'document': self.corpus_documents,'length': self.document_length })
-        df['year'] = df.document.apply(lambda x: int(re.search('(\d{4})', x).group(0)))
-        return df
-
-def create_base_name(opt):
-    extremes = opt.get("filter_extreme_args", {})
-    lda_opts = opt.get("lda_options", {})
-    return "{}{}{}{}{}{}{}{}{}".format(
-        'topics_{}'.format(lda_opts.get("num_topics", 0)),
-        '_'.join(opt["pos_tags"].split('|')),
-        '_no_chunks' if opt.get("chunk_size", None) is None else 'bz_{}'.format(opt.get("chunk_size", 0)),
-        '_iterations_{}'.format(lda_opts.get("iterations", 0)),
-        '_lowercase' if opt.get("lowercase", False) else '',
-        '_keep_{}'.format(extremes.get('keep_n', 0)) if extremes is not None and extremes.get('keep_n', 0) > 0 else '',
-        '_no_below_dfs_{}'.format(extremes.get('no_below', 0)) if extremes is not None and extremes.get('no_below', 0) > 0 else '',
-        '_no_above_{}'.format(extremes.get('no_above', 0)) if extremes is not None and extremes.get('no_above', 0) > 0 else '',
-        '_{}'.format(opt.get('lda_engine', '').lower())
-    )
-
-
-
-class LdaModelHelper():
-
-    @staticmethod
-    def convert_to_pyLDAvis(lda, corpus, dictionary, R=50, mds='tsne', sort_topics=False, plot_opts={'xlab': 'PC1', 'ylab': 'PC2'}, target_folder=None):
-        data = pyLDAvis.gensim.prepare(lda, corpus, dictionary, R=R, mds=mds, plot_opts=plot_opts, sort_topics=sort_topics)
-        if target_folder is not None:
-            # pyLDAvis.save_json(data, os.path.join(target_folder, 'pyldavis.json'))
-            pyLDAvis.save_html(data, os.path.join(target_folder, 'pyldavis.html'))
-        return data
+class ModelComputeHelper():
 
     @staticmethod
     def get_topic_token_weight_toplist(lda, num_words=200):
@@ -179,13 +100,51 @@ class LdaModelHelper():
         df = pd.merge(df, df_topic_overview, how='inner', left_on='topic_id', right_on='topic_id')
         return df[['year', 'topic_id', 'weight', 'top10']]
 
-    #df_doc_topics = pd.read_csv(os.path.join(repository.directory, model.fdoctopics()), sep='\t', header=None, index_col=False)
-    #df_doc_topics.columns = [ 'document_id', 'label_id'] + topic_columns
+    @staticmethod
+    def get_corpus_document(sparvCorpus):
+        df = pd.DataFrame({'document': sparvCorpus.corpus_documents,'length': sparvCorpus.document_length })
+        df['year'] = df.document.apply(lambda x: int(re.search('(\d{4})', x).group(0)))
+        return df
 
-    #df_topic_keys = pd.read_csv(os.path.join(repository.directory, model.ftopickeys()), sep='\t', header=None, index_col=False)
-    #df_topic_keys.columns = [ 'topic_id', 'not_used', 'tokens' ]
+    @staticmethod
+    def compute_gensim_tfidf_bag_of_keywords(corpus):
+        tfidf = models.TfidfModel(corpus, normalize=True)
+        corpus_tfidf = tfidf[corpus]
+        return corpus_tfidf
 
-def compute(archive_name, options, default_opt={}):
+    @staticmethod
+    def compute_sklearn_tfidf(text_corpus, top_n, max_features=5000):
+        """ return the top n feature names and idf scores of a tweets list """
+        def documents(corpus):
+            for document in corpus:
+                yield ' '.join(document)
+
+        tfidf_vectorizer = TfidfVectorizer(max_features=max_features)
+        tfidf_vectorizer.fit_transform(documents(text_corpus))
+        indices = np.argsort(tfidf_vectorizer.idf_)[::-1]
+        features = tfidf_vectorizer.get_feature_names()
+        top_feature_name = [features[i] for i in indices[:top_n]]
+        top_feature_idf = tfidf_vectorizer.idf_[indices][:top_n]
+
+        return top_feature_name, top_feature_idf
+
+    @staticmethod
+    def transform_sklearn_to_gensim(corpus_vect):
+        # transform sparse matrix into gensim corpus
+        corpus_vect_gensim = matutils.Sparse2Corpus(corpus_vect, documents_columns=False)
+        from gensim.corpora.dictionary import Dictionary
+        dictionary = Dictionary.from_corpus(corpus_vect_gensim,
+                id2word=dict((id, word) for word, id in corpus_vect.vocabulary_.items()))
+        return corpus_vect_gensim, dictionary
+
+def convert_to_pyLDAvis(lda, corpus, dictionary, R=50, mds='tsne', sort_topics=False, plot_opts={'xlab': 'PC1', 'ylab': 'PC2'}, target_folder=None):
+    data = pyLDAvis.gensim.prepare(lda, corpus, dictionary, R=R, mds=mds, plot_opts=plot_opts, sort_topics=sort_topics)
+    if target_folder is not None:
+        # pyLDAvis.save_json(data, os.path.join(target_folder, 'pyldavis.json'))
+        pyLDAvis.save_html(data, os.path.join(target_folder, 'pyldavis.html'))
+    return data
+
+def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
 
     for _opt in options:
 
@@ -197,15 +156,15 @@ def compute(archive_name, options, default_opt={}):
 
         lda_options = dict(opt['lda_options'])
 
-        basename = create_base_name(opt)
-        directory = os.path.join('C:\\tmp\\', basename + '\\')
-        repository = utility.UtilityRepository(directory)
+        basename = store.create_base_name(opt)
+        directory = os.path.join(target_folder, basename + '\\')
+        repository = store.UtilityRepository(directory)
         repository.create(True)
 
-        corpus = DaedalusTextCorpus(archive_name, opt.get("pos_tags"), opt.get("chunk_size", None), opt.get("lowercase", True), opt.get("filter_extremes", False))
+        corpus = SparvTextCorpus(archive_name, opt.get("pos_tags"), opt.get("chunk_size", None), opt.get("lowercase", True), opt.get("filter_extremes", False))
 
         ''' Convert Corpus to Matrix Market format and save to disk... '''
-        df_corpus_document = corpus.get_corpus_document()
+        df_corpus_document = ModelComputeHelper.get_corpus_document(corpus)
         corpora.MmCorpus.serialize(os.path.join(repository.directory, 'corpus.mm'), corpus)
         corpus.dictionary.save(os.path.join(repository.directory, 'corpus.dict.gz'))
         df_corpus_document.to_csv(os.path.join(repository.directory, 'corpus_documents.csv'), sep='\t')
@@ -223,7 +182,7 @@ def compute(archive_name, options, default_opt={}):
             # model.save(os.path.join(repository.directory, 'mallet_model_{}.gensim.gz'.format(basename)))
 
             ''' Convert to Gensim LDA model and save to disk... '''
-            lda = ldamallet.malletmodel2ldamodel(model)
+            lda = models.ldamallet.malletmodel2ldamodel(model)
 
             ''' Compress files to save space... '''
             repository.zip(model.ftopicwordweights())
@@ -232,19 +191,19 @@ def compute(archive_name, options, default_opt={}):
 
             lda_options.update({ 'dtype': np.float64 })
 
-            lda = LdaModel(corpus=mm, id2word=dictionary, **lda_options)
+            lda = models.LdaModel(corpus=mm, id2word=dictionary, **lda_options)
 
         lda_filename = os.path.join(repository.directory, 'gensim_model_{}.gensim.gz'.format(basename))
         lda.save(lda_filename)
 
         ''' re-read from disk to get a clean model '''
-        lda = LdaModel.load(lda_filename)
+        lda = store.load(lda_filename)
 
         ''' Prepare various data frames to be saved as sheets in an Excel file... '''
-        df_doc_topic_weights = LdaModelHelper.get_document_topics(lda, mm, df_corpus_document, num_words=200, minimum_probability=0)
-        df_topic_token_weights = LdaModelHelper.get_topic_token_weight_toplist(lda, num_words=200)
-        df_topic_overview = LdaModelHelper.get_topic_overview(df_topic_token_weights)
-        df_yearly_mean_topic_weights = LdaModelHelper.get_yearly_mean_topic_weight(df_doc_topic_weights, df_topic_overview)
+        df_doc_topic_weights = ModelComputeHelper.get_document_topics(lda, mm, df_corpus_document, num_words=200, minimum_probability=0)
+        df_topic_token_weights = ModelComputeHelper.get_topic_token_weight_toplist(lda, num_words=200)
+        df_topic_overview = ModelComputeHelper.get_topic_overview(df_topic_token_weights)
+        df_yearly_mean_topic_weights = ModelComputeHelper.get_yearly_mean_topic_weight(df_doc_topic_weights, df_topic_overview)
         df_dictionary = pd.DataFrame({ 'token': dictionary.id2token, 'dfs': dictionary.dfs }).reset_index().set_index('index')[['token', 'dfs']]
 
         repository.save_excel(
@@ -259,5 +218,5 @@ def compute(archive_name, options, default_opt={}):
         )
 
         ''' Create a pyLDAvis HTML file... '''
-        LdaModelHelper.convert_to_pyLDAvis(lda, mm, dictionary, R=100, mds='tsne', sort_topics=False, target_folder=repository.directory)
+        convert_to_pyLDAvis(lda, mm, dictionary, R=100, mds='tsne', sort_topics=False, target_folder=repository.directory)
 
