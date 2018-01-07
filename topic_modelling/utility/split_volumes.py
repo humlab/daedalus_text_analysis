@@ -2,32 +2,6 @@ import os
 import zipfile
 import glob
 
-
-# class CorpusCleanser(object):
-# import shutil
-# from nltk.corpus import stopwords
-# import gensim.models
-
-#     def __init__(self, options, language='swedish'):
-#         self.stopwords = set(stopwords.words(language))
-#         self.options = options
-
-#     def cleanse(self, sentence, min_word_size=2):
-
-#         sentence = [x.lower() for x in sentence]
-#         # sentence = [ x for x in sentence if len(x) >= min_word_size ]
-#         if options.get('filter_stopwords', False):
-#             sentence = [x for x in sentence if x not in self.stopwords]
-#         # sentence = [ x for x in sentence if not x.isdigit() ]
-#         sentence = [x for x in sentence if any(map(lambda x: x.isalpha(), x))]
-#         return sentence
-
-#     def compress(self, filename):
-#         with open(filename, 'rb') as f_in:
-#             with gzip.open(filename + '.gz', 'wb') as f_out:
-#                 shutil.copyfileobj(f_in, f_out)
-
-
 class ZipFileReader(object):
 
     def __init__(self, pattern, cleanser=None, extensions=['txt']):
@@ -44,8 +18,6 @@ class ZipFileReader(object):
                 for filename in filenames:
                     with zip_file.open(filename) as text_file:
                         content = text_file.read().decode('utf8')
-                        # content = content.replace('-\r\n','')
-                        # content = content.replace('-\n','')
                         if content == '':
                             continue
                         yield (filename, content)

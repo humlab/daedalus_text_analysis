@@ -3,7 +3,8 @@
 import os
 import matplotlib.pyplot as plt
 import wordcloud
-from viz_utility import load_topic_tokens, get_model_names
+
+from topic_modelling.viz_utility import load_topic_tokens, get_model_names
 
 def plot_topic_wordclouds(df_topic_token_weights, topics=None, ncols=5):
 

@@ -2,7 +2,7 @@
 import os
 from lxml import etree
 import zipfile
-from io import StringIO, BytesIO
+from io import StringIO
 import gensim
 
 class SparvCorpusReader():
@@ -61,20 +61,3 @@ class SparvCorpusReader():
                 if len(chunk_tokens) == 0:
                     continue
                 yield '{}_{}.txt'.format(basename, str(chunk_counter).zfill(2)), chunk_tokens
-
-if __name__ == "__main__":
-    archive_name = './data/daedalus_sparv_result_article_xml.zip'
-    xsl_filename = './extract_tokens.xslt'
-
-    reader = SparvCorpusReader(xsl_filename, archive_name, pos_tags="'|NN|'", chunk_size=None)
-
-    for chunk_name, tokens in reader:
-        print('{}: {}'.format(chunk_name, len(tokens)))
-
-    # xml_filename = './data/test.xml'
-    # xsl_filename = './extract_tokens.xslt'
-    # xml = etree.parse(xml_filename)
-    # xslt = etree.parse(xsl_filename)
-    # transform = etree.XSLT(xslt)
-    # result = transform(xml, pos_tags="'|NN|VB|'")
-    # print(result)

@@ -7,7 +7,7 @@ from sklearn.preprocessing import Normalizer
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.decomposition import PCA
 from scipy.spatial.distance import pdist, squareform
-from viz_utility import get_model_names, load_gensim_lda_model
+from topic_modelling.viz_utility import get_model_names, load_gensim_lda_model
 import matplotlib as plt
 
 def vectorize_topic_terms(lda, n_words=100):

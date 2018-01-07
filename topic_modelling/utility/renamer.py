@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys, glob
+import os, glob
 
 for path in glob.glob('C:\\Temp\\Dedalus\\total-segmenterad-volumes\\total-segmenterade\\*.txt'):
     folder, filename = os.path.split(path)

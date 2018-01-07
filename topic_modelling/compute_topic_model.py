@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-add_lib_path('..')
-
 import logging
 import os
 import re
-from gensim import corpora, models, utils, interfaces
+from gensim import corpora, models, interfaces
 from gensim.models.wrappers import ldamallet
 from gensim.models.ldamodel import LdaModel
-from sparv_annotator import SparvCorpusReader
+from .. sparv_annotator import SparvCorpusReader
 import utility
 import pandas as pd
 import itertools
@@ -189,7 +187,7 @@ class LdaModelHelper():
     #df_topic_keys = pd.read_csv(os.path.join(repository.directory, model.ftopickeys()), sep='\t', header=None, index_col=False)
     #df_topic_keys.columns = [ 'topic_id', 'not_used', 'tokens' ]
 
-def main(archive_name, options, default_opt={}):
+def compute(archive_name, options, default_opt={}):
 
     for _opt in options:
 
@@ -281,7 +279,6 @@ default_opt = {
 if __name__ == "__main__":
 
     archive_name = './data/daedalus_sparv_result_article_xml_20171122.zip'
-    # archive_name = './data/test_data._article_xml.zip'
     '''
     See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
     '''
@@ -299,64 +296,4 @@ if __name__ == "__main__":
         # { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 999, 'chunksize': 10000, 'passes': 2 } }
     ]
 
-    main(archive_name, options, default_opt=default_opt)
-
-
-def convert_to_lda():
-
-    for option in options:
-
-        opt = dict(default_opt)
-        opt.update(option)
-
-        if option["skip"] is True:
-            continue
-
-        basename = create_base_name(opt)
-        directory = os.path.join('C:\\tmp\\', create_base_name(opt))
-        model = ldamallet.LdaMallet.load(os.path.join(directory, 'mallet_model_{}.gensim'.format(basename)), mmap=None)
-        lda = ldamallet.malletmodel2ldamodel(model)
-        lda.save(os.path.join(directory, 'gensim_model_{}.gensim'.format(basename)))
-
-def convert_id2documents():
-    current_basenames = []
-    for basename in current_basenames:
-        print(basename)
-        model_folder = os.path.join('C:\\tmp\\', basename)
-        corpus = corpora.MmCorpus(os.path.join(model_folder, 'corpus.mm'))
-        doc_length = pd.DataFrame(dict(length=[ len(x) for x in corpus]))
-        df_corpus_documents = pd.read_csv(os.path.join(model_folder, 'id2document.csv'), sep='\t', header=None)
-        df_corpus_documents.columns = [ 'document_id', 'document', 'year' ]
-        df_corpus_documents['length'] = doc_length
-        df_corpus_documents.to_csv(os.path.join(model_folder, 'corpus_documents.csv'), sep='\t', header=True)
-        #print(doc_length)
-
-
-
-opts = { 'max_font_size': 100, 'background_color': 'white', 'width': 800, 'height': 800 }
-
-def w_next_clicked(b):  w_topic.value = (w_topic.value + 1) % n_topics
-
-def w_prev_clicked(b):
-    w_topic.value = (w_topic.value - 1) % n_topics
-
-def display_wordcloud(topic_id, max_words):
-    global topic_token_weights
-    df_temp = topic_token_weights
-    tokens = ModelUtility.get_topic_title(topic_token_weights, topic_id)
-    w_html.value = 'ID {}: {}'.format(topic_id, tokens)
-    WordcloudUtility.plot_wordcloud(df_temp, 'token', 'weight', max_words=max_words, **opts)
-
-w_topic = widgets.IntSlider(min=0, max=n_topics-1, step=1, value=0, description='Topic ID', continuous_update=False)
-w_word_count = widgets.IntSlider(min=1, max=500, step=1, value=50, description='Word count',continuous_update=False)
-w_prev = widgets.Button(description="<<",style=dict(description_width='initial', button_color='lightgreen'))
-w_next = widgets.Button(description=">>", style=w_prev.style)
-w_prev.on_click(w_prev_clicked)
-w_next.on_click(w_next_clicked)
-
-w_html = widgets.HTML(value="", placeholder='', description='')
-
-w = interactive(display_wordcloud, topic_id=w_topic, max_words=w_word_count)
-
-x = widgets.HBox((w_prev,) + (w_next,) + (w_topic,) + (w_word_count,))
-widgets.VBox((w_html,) + (x,) + (w.children[-1],))
+    compute(archive_name, options, default_opt=default_opt)

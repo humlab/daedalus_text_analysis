@@ -2,7 +2,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from viz_utility import get_model_names, load_document_topics
+from topic_modelling.viz_utility import get_model_names, load_document_topics
 
 def plot_yearly_distributions(df):
 
