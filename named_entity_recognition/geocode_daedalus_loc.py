@@ -1,9 +1,9 @@
 
 from geopy.geocoders import GoogleV3# GeoNames, Nominatim, GoogleV3     # if explicit use of geopy
-from geocode_loc_tags import assign_geocodes, load_swener_tags,get_country
+from . geocode_loc_tags import assign_geocodes, load_swener_tags,get_country
 import numpy as np
 import pandas as pd
-from helper import save_to_excel, read_from_excel
+from common import FileUtility
 
 def setup_unique_locations_dataframe(df_tags, geocoded_filename):
 
@@ -16,7 +16,7 @@ def setup_unique_locations_dataframe(df_tags, geocoded_filename):
     df['country'] = np.nan
     df = df.set_index('entity')
 
-    df_geocoded = read_from_excel(geocoded_filename).set_index('entity')
+    df_geocoded = FileUtility.read_excel(filename=geocoded_filename, sheet='Sheet1').set_index('entity')
     return df.combine_first(df_geocoded)
 
 def assign_country_to_locations(df):
@@ -33,7 +33,7 @@ def process_geocoding(df_tags, geolocator, geocoded_filename, geocoded_output_fi
         while True:
             hits = assign_geocodes(geolocator, df_locations)
             if hits == 0: break
-            save_to_excel(df_locations, geocoded_output_filename)
+            FileUtility.save_to_excel(df_locations, geocoded_output_filename)
     print("Done!")
     return df_locations
 
@@ -58,22 +58,22 @@ def main(do_geocoding=False, do_tags_cleanup=False, do_assign_country=False, do_
     if do_tags_cleanup:
         df_tags = load_swener_tags(tags_filename)
         df_loc_tags = df_tags[df_tags.category.str.contains('LOC')]
-        save_to_excel(df_loc_tags, clean_location_tags_filename)
+        FileUtility.save_excel((df_loc_tags, 'Sheet1'), clean_location_tags_filename)
     else:
-        df_loc_tags = read_from_excel(clean_location_tags_filename, 'Sheet1')
+        df_loc_tags = FileUtility.read_excel(clean_location_tags_filename, 'Sheet1')
 
     if do_geocoding:
         df_locations = process_geocoding(df_loc_tags, geolocator, geocoded_filename, new_geocoded_filename)
     else:
-        df_locations = read_from_excel(geocoded_filename, 'Sheet1')\
+        df_locations = FileUtility.read_excel(geocoded_filename, 'Sheet1')\
             .set_index('entity')
 
     if do_assign_country:
         assign_country_to_locations(df_locations)
-        save_to_excel(df_locations, new_geocoded_filename)
+        FileUtility.save_excel((df_locations,'Sheet1'),  new_geocoded_filename)
 
     if do_merge_tags_with_geocodes:
         df_geocoded_result = apply_geocodes(df_loc_tags, df_locations)
-        save_to_excel(df_geocoded_result, geocoded_location_tags_filename)
+        FileUtility.save_excel((df_geocoded_result,'Sheet1'),  geocoded_location_tags_filename)
 
 main()

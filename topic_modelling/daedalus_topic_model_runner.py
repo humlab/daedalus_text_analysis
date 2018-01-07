@@ -1,5 +1,7 @@
 
-from . compute_topic_models import compute
+from . import compute
+
+mallet_path = 'C:\\Usr\\mallet-2.0.8'
 
 default_opt = {
         "skip": False,
@@ -23,14 +25,14 @@ if __name__ == "__main__":
 
     options = [
 
-        { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 2000, 'chunksize': 10000, 'passes': 2 } },
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 50, "iterations": 2000 } },
+        { 'lda_engine': 'LdaModel', 'engine_lda_options': { "num_topics": 50, "iterations": 2000, 'chunksize': 10000, 'passes': 2 }},
+        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 50, "iterations": 2000 }, 'engine_path': mallet_path  },
 
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 100, "iterations": 2000 } },
+        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 100, "iterations": 2000 }, 'engine_path': mallet_path  },
         { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 100, "iterations": 2000, 'chunksize': 10000, 'passes': 2  } },
 
         { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 150, "iterations": 2000, 'chunksize': 10000, 'passes': 2  } },
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 150, "iterations": 2000 } }
+        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 150, "iterations": 2000 }, 'engine_path': mallet_path  }
         # { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 999, 'chunksize': 10000, 'passes': 2 } }
     ]
 

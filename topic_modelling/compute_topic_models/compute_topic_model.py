@@ -4,65 +4,13 @@ import logging
 import os
 import re
 from gensim import corpora, models, matutils
-from . import SparvCorpusReader, SparvTextCorpus
+from . import SparvTextCorpus
 import pandas as pd
-import inspect
 import numpy as np
-import pyLDAvis
-import pyLDAvis.gensim
 from model_store import ModelStore as store
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-default_mallet_path = 'C:\\Usr\\mallet-2.0.8'
-logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-class FunctionArgumentUtility:
-
-    @staticmethod
-    def filter_by_function(f, args):
-        return { k: args[k] for k in args.keys()
-            if k in inspect.getfullargspec(f).args }
-
-class MyLdaMallet(models.wrappers.LdaMallet):
-
-    def __init__(self, corpus, id2word, **args):
-
-        args = FunctionArgumentUtility.filter_by_function(super(MyLdaMallet, self).__init__, args)
-
-        args.update({ "workers": 4, "optimize_interval": 10 })
-
-        mallet_home = os.environ.get('MALLET_HOME', default_mallet_path)
-
-        if not mallet_home:
-            raise Exception("Environment variable MALLET_HOME not set. Aborting")
-
-        mallet_path = os.path.join(mallet_home, 'bin', 'mallet') if mallet_home else None
-
-        if os.environ.get('MALLET_HOME', '') != mallet_home:
-            os.environ["MALLET_HOME"] = mallet_home
-
-        super(MyLdaMallet, self ).__init__(mallet_path, corpus=corpus, id2word=id2word, **args)
-
-    def ftopicwordweights(self):
-        return self.prefix + 'topicwordweights.txt'
-
-    def train(self, corpus):
-        from gensim.utils import check_output
-        self.convert_input(corpus, infer=False)
-        cmd = self.mallet_path + ' train-topics --input %s --num-topics %s  --alpha %s --optimize-interval %s '\
-            '--num-threads %s --output-state %s --output-doc-topics %s --output-topic-keys %s --topic-word-weights-file %s '\
-            '--num-iterations %s --inferencer-filename %s --doc-topics-threshold %s'
-        cmd = cmd % (
-            self.fcorpusmallet(), self.num_topics, self.alpha, self.optimize_interval,
-            self.workers, self.fstate(), self.fdoctopics(), self.ftopickeys(), self.ftopicwordweights(), self.iterations,
-            self.finferencer(), self.topic_threshold
-        )
-        # NOTE "--keep-sequence-bigrams" / "--use-ngrams true" poorer results + runs out of memory
-        logger.info("training MALLET LDA with %s", cmd)
-        check_output(args=cmd, shell=True)
-        self.word_topics = self.load_word_topics()
-        self.wordtopics = self.word_topics
+from . import convert_to_pyLDAvis
+from . import LdaMalletService
 
 class ModelComputeHelper():
 
@@ -90,7 +38,7 @@ class ModelComputeHelper():
 
     @staticmethod
     def get_topic_overview(df_topic_token_weights):
-        df = df_topic_token_weights.groupby(['topic_id'])['token'].apply(lambda x: ' '.join(x)).reset_index()
+        df = df_topic_token_weights.groupby(['topic_id'])['token'].apply(' '.join).reset_index()
         df['top10'] = df['token'].apply(lambda z: '{}'.format('_'.join(map(lambda x: x.title(), z.split(' ')[:10]))))
         return df
 
@@ -137,13 +85,6 @@ class ModelComputeHelper():
                 id2word=dict((id, word) for word, id in corpus_vect.vocabulary_.items()))
         return corpus_vect_gensim, dictionary
 
-def convert_to_pyLDAvis(lda, corpus, dictionary, R=50, mds='tsne', sort_topics=False, plot_opts={'xlab': 'PC1', 'ylab': 'PC2'}, target_folder=None):
-    data = pyLDAvis.gensim.prepare(lda, corpus, dictionary, R=R, mds=mds, plot_opts=plot_opts, sort_topics=sort_topics)
-    if target_folder is not None:
-        # pyLDAvis.save_json(data, os.path.join(target_folder, 'pyldavis.json'))
-        pyLDAvis.save_html(data, os.path.join(target_folder, 'pyldavis.html'))
-    return data
-
 def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
 
     for _opt in options:
@@ -176,8 +117,8 @@ def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
         if 'MALLET' in opt.get('lda_engine', '').upper():
 
             lda_options.update({ 'prefix': repository.directory, "workers": 4, "optimize_interval": 10 })
-
-            model = MyLdaMallet(mm, id2word=dictionary, **lda_options)
+            mallet_path = opt.get('engine_path', '')
+            model = LdaMalletService(mm, id2word=dictionary, mallet_path=mallet_path, **lda_options)
 
             # model.save(os.path.join(repository.directory, 'mallet_model_{}.gensim.gz'.format(basename)))
 

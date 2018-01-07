@@ -3,10 +3,6 @@ from matplotlib import pyplot
 import pandas as pd
 from scipy import spatial
 
-from utility import load_model_vector
-
-# %%
-
 class SimilarWordGenerater():
 
     def __init__(self, word_vectors):

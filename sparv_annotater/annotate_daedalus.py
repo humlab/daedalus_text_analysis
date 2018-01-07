@@ -1,5 +1,5 @@
 
-from sparv_annotater import ArchiveAnnotater
+from . import ArchiveAnnotater
 
 def main():
     settings = {

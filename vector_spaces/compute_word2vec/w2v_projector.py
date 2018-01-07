@@ -72,22 +72,6 @@ class W2V_TensorFlow():
         self.convert_model(model, target_dir, dimension=dimension)
         return model
 
-#class TestConvert:
-#
-#     def copy_to_np(self, model, vector_dim):
-#        # convert the wv word vectors into a numpy matrix that is suitable for insertion into TensorFlow or Keras models
-#        embedding_matrix = np.zeros((len(model.wv.vocab), vector_dim))
-#        for i in range(len(model.wv.vocab)):
-#            embedding_vector = model.wv[model.wv.index2word[i]]
-#            if embedding_vector is not None:
-#                embedding_matrix[i] = embedding_vector
-#        return embedding_matrix
-#
-#    def create_embedding(self, embedding_matrix):
-#        # embedding layer weights are frozen to avoid updating embeddings while training
-#        saved_embeddings = tf.constant(embedding_matrix)
-#        return tf.Variable(initial_value=saved_embeddings, trainable=False)
-# %%
 if __name__ == "__main__":
     """
     Just run `python w2v_visualizer.py word2vec.model visualize_result`

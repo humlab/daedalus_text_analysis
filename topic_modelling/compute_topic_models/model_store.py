@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import time
 import pandas as pd
-import shutil
-import zipfile
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import gensim
@@ -93,68 +90,20 @@ class ModelStore():
         n_topics = len(df.columns) - 3
         document_columns = [ 'document_id', 'document', 'year' ]
         topic_columns = list(range(0, n_topics))
-        # FIXME: First topic should be 0 in Excel!!!!
         df.columns = document_columns + topic_columns
         if melt:
-            df = pd.melt(df,
-                        id_vars=document_columns,
-                        var_name="topic_id",
-                        value_name="weight",
-                        value_vars=topic_columns)
+            df = pd.melt(
+                df,
+                id_vars=document_columns,
+                var_name="topic_id",
+                value_name="weight",
+                value_vars=topic_columns)
         return df
 
     @staticmethod
     def get_model_names(source_folder):
         return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*')) ]
 
-
-class UtilityRepository:
-
-    def __init__(self, directory):
-        self.directory = directory
-
-    def create(self, clear_target_dir=False):
-
-        if os.path.exists(self.directory) and clear_target_dir:
-            shutil.rmtree(self.directory)
-
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
-
-    def read_excel(self, filename, sheet):
-        if not os.path.isfile(filename):
-            raise Exception("File {0} does not exist!".format(filename))
-        with pd.ExcelFile(filename) as xls:
-            return pd.read_excel(xls, sheet)
-
-    def save_excel(self, data, filename):
-        with pd.ExcelWriter(filename) as writer:
-            for (df, name) in data:
-                df.to_excel(writer, name)
-            writer.save()
-
-    def data_path(self, filename):
-        return os.path.join(self.directory, filename)
-
-    def ts_data_path(self, filename):
-        return os.path.join(self.directory, '{}_{}'.format(time.strftime("%Y%m%d%H%M"), filename))
-
-    def data_path_ts(self, path):
-        basename, extension = os.path.splitext(path)
-        return os.path.join(self.directory, '{}_{}{}'.format(basename, time.strftime("%Y%m%d%H%M"), extension))
-
-    def zip(self, path):
-        if not os.path.exists(path):
-            print("ERROR: file not found (zip)")
-            return
-        folder, filename = os.path.split(path)
-        basename, _ = os.path.splitext(filename)
-        zip_name = os.path.join(folder, basename + '.zip')
-        with zipfile.ZipFile(zip_name, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
-            zf.write(path)
-        os.remove(path)
-
-# # %%
 # import re
 # class Utility:
 
