@@ -3,7 +3,7 @@
 import logging
 import os
 import re
-from gensim import corpora, models, interfaces
+from gensim import corpora, models
 from gensim.models.wrappers import ldamallet
 from gensim.models.ldamodel import LdaModel
 from .. sparv_annotator import SparvCorpusReader
@@ -12,6 +12,8 @@ import pandas as pd
 import itertools
 import inspect
 import numpy as np
+import pyLDAvis
+import pyLDAvis.gensim
 
 default_mallet_path = 'C:\\Usr\\mallet-2.0.8'
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
@@ -63,8 +65,6 @@ class MyLdaMallet(models.wrappers.LdaMallet):
         check_output(args=cmd, shell=True)
         self.word_topics = self.load_word_topics()
         self.wordtopics = self.word_topics
-
-#%%
 
 class DaedalusTextCorpus(corpora.TextCorpus):
 
@@ -133,9 +133,7 @@ def create_base_name(opt):
         '_{}'.format(opt.get('lda_engine', '').lower())
     )
 
-# %%
-import pyLDAvis
-import pyLDAvis.gensim
+
 
 class LdaModelHelper():
 
@@ -263,37 +261,3 @@ def compute(archive_name, options, default_opt={}):
         ''' Create a pyLDAvis HTML file... '''
         LdaModelHelper.convert_to_pyLDAvis(lda, mm, dictionary, R=100, mds='tsne', sort_topics=False, target_folder=repository.directory)
 
-default_opt = {
-        "skip": False,
-        "pos_tags": '|NN|PM|',
-        "chunk_size": None,
-        "lowercase": True,
-        'lda_engine': 'LdaMallet',
-        "lda_options": {
-            "num_topics": 50,
-            "iterations": 2000,
-        },
-        "filter_extreme_args": {}
-}
-
-if __name__ == "__main__":
-
-    archive_name = './data/daedalus_sparv_result_article_xml_20171122.zip'
-    '''
-    See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
-    '''
-
-    options = [
-
-        { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 2000, 'chunksize': 10000, 'passes': 2 } },
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 50, "iterations": 2000 } },
-
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 100, "iterations": 2000 } },
-        { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 100, "iterations": 2000, 'chunksize': 10000, 'passes': 2  } },
-
-        { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 150, "iterations": 2000, 'chunksize': 10000, 'passes': 2  } },
-        { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 150, "iterations": 2000 } }
-        # { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 999, 'chunksize': 10000, 'passes': 2 } }
-    ]
-
-    compute(archive_name, options, default_opt=default_opt)
