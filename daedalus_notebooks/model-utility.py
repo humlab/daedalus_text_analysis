@@ -80,7 +80,7 @@ class ModelUtility:
             aggfunc=aggregate_key
         ).reset_index() #.set_index('year')       
         return df_temp
-
+    
     @staticmethod
     def get_topic_titles(topic_token_weights, topic_id=None, n_words=100):
         df_temp = topic_token_weights if topic_id is None else topic_token_weights[(topic_token_weights.topic_id==topic_id)]
@@ -93,6 +93,15 @@ class ModelUtility:
     @staticmethod
     def get_topic_title(topic_token_weights, topic_id, n_words=100):
         return ModelUtility.get_topic_titles(topic_token_weights, topic_id, n_words=n_words).iloc[0]
+    
+    get_topics_tokens_as_text = get_topic_titles
+    get_topic_tokens_as_text = get_topic_title
+    
+    @staticmethod
+    def get_topic_tokens(topic_token_weights, topic_id=None, n_words=100):
+        df_temp = topic_token_weights if topic_id is None else topic_token_weights[(topic_token_weights.topic_id==topic_id)]
+        df = df_temp.sort_values('weight',ascending=False)[:n_words]
+        return df    
 
     @staticmethod
     def load_model_vector(filename):
