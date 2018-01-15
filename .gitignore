@@ -1,4 +1,6 @@
 data/
+vsm-data/
+tm-data/
 temp/
 daedalus_notebooks/data/
 daedalus_notebooks/temp/
