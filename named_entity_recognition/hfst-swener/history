@@ -1,0 +1,420 @@
+    1  ls
+    2  cd /mnt
+    3  pwd
+    4  env
+    5  cd ~
+    6  ls
+    7  hsft-swener -?
+    8  hfst-swener
+    9  kill %1
+   10  hfst-swener -h
+   11  man hsft-swener
+   12  history
+   13  ls
+   14  dir
+   15  mkdir data
+   16  cp /mnt/c/Users/roma0050/Documents/Projects/digital_models/Daedalus\ NER/data/*.txt data/
+   17  ls data
+   18  cd data/
+   19  mkdir output
+   20  hfst-swener --times --verbose --output-to-dir ./output/ --pmatch --names *.txt
+   21  hfst-swener --times --verbose --output-dir ./output/ --pmatch --names *.txt
+   22  kill %1
+   23  ls output/
+   24  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+   25  ls output
+   26  cd output/
+   27  vi Daedalus\ 1931\ JJ.txt.ner-pm 
+   28  ls
+   29  rename
+   30  rename 's/Daedalus\ /Deadalus/' D*.ner-pm
+   31  ls
+   32  rename 's/\ JJ\.txt// D*
+   33  rename 's/\ JJ\.txt//' D*
+   34  ls
+   35  ls /usr/local/bin
+   36  extract-tagged-names.py D*
+   37  extract-tagged-names.py -h
+   38  for f in *; do echo "Processing $f file.."; done
+   39  vi extract_tags.bash
+   40  ls
+   41  chmod +x extract_tags.bash 
+   42  vi extract_tags.bash
+   43  ./extract_tags.bash 
+   44  which bash
+   45  vi extract_tags.bash
+   46  ./extract_tags.bash 
+   47  ls
+   48  vi Deadalus1931.ner-pm.tags.txt 
+   49  ls
+   50  for i i!v[An *.txt; do nawk '{print FILENAME"\t"$0}' $i ; done
+   51  vi extract_tags.bash
+   52  ./extract_tags.bash 
+   53  vi extract_tags.bash
+   54  ./extract_tags.bash 
+   55  vi extract_tags.bash
+   56  ./extract_tags.bash 
+   57  vi extract_tags.bash
+   58  ./extract_tags.bash 
+   59  vi extract_tags.bash
+   60  ./extract_tags.bash 
+   61  vi extract_tags.bash
+   62  ./extract_tags.bash 
+   63  vi extract_tags.bash
+   64  ./extract_tags.bash 
+   65  vi extract_tags.bash
+   66  ./extract_tags.bash 
+   67  vi extract_tags.bash
+   68  ./extract_tags.bash 
+   69  ./extract_tags.bash  | wc
+   70  vi extract_tags.bash
+   71  history
+   72  ls
+   73  cp * /mnt/c/Users/roma0050/Documents/Projects/digital_models/Daedalus\ NER/
+   74  ./extract_tags.bash > extracted_tags.txt
+   75  ./extract_tags.bash 
+   76  vi extract_tags.bash
+   77  ./extract_tags.bash 
+   78  ls
+   79  rm *.txt
+   80  ./extract_tags.bash 
+   81  ./extract_tags.bash > exrtacted_total.txt
+   82  mv exrtacted_total.txt extracted_total.txt
+   83  cp extracted_total.txt /mnt/c/Users/roma0050/Documents/Projects/digital_models/Daedalus\ NER/output/
+   84  pip install geopandas
+   85  which hsft-swener
+   86  cd /usr/local/bin
+   87  ls
+   88  cd
+   89  ls
+   90  vi /usr/local/bin/extract-tagged-names.py 
+   91  ls /usr/local/bin
+   92  ls -al /usr/local/bin
+   93  cd hfst-swener-0.9.3/
+   94  ls
+   95  cd
+   96  mkdir sead
+   97  cd  sead
+   98  git clone https://github.com/humlab/sead_ecofig_effigy.git
+   99  cd sead_ecofig_effigy/
+  100  npm install
+  101  apt-get install npm
+  102  sudo apt-get install npm
+  103  apt-get update
+  104  sudo apt-get update
+  105  sudo apt-get upgrade
+  106  ls
+  107  ls data
+  108  cd data
+  109  rm *.txt
+  110  cp /mnt/c/Users/roma0050/Documents/Projects/digital_models/Daedalus\ NER/data/*.txt .
+  111  ls
+  112  ls output/
+  113  rm output/*.txt
+  114  rm output/*.ner-pm
+  115  ls output/
+  116  ls
+  117  cd ..
+  118  ls
+  119  ls hfst
+  120  cd hfst-swener-0.9.3/
+  121  h
+  122  history
+  123  cd ..
+  124  ls
+  125  cd data/
+  126  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+  127  ls
+  128  ls output/
+  129  cd output/
+  130  vi extract_tags.bash 
+  131  ./extract_tags.bash 
+  132  ls
+  133  vi extract_tags.bash 
+  134  ./extract_tags.bash > total_output.txt
+  135  gzip
+  136  history
+  137  cd data/
+  138  cd output/
+  139  ls
+  140  vi extract_tags.bash 
+  141  history
+  142  ./extract_tags.bash > Daedalus1931-99.tags.tsv
+  143  cp Daedalus1931-99.tags.tsv /mnt/c/Temp/
+  144  cp *.txt /mnt/c/Temp/
+  145  ls
+  146  cp *.* /mnt/c/Temp/
+  147  EXIT
+  148  exit
+  149  cd data/
+  150  ls
+  151  rm *.txt
+  152  ls /mnt/C
+  153  ls /mnt/c
+  154  ls /mnt/c/Temp
+  155  ls /mnt/c/Temp/Daedalus_Clean_Text_1931-2014/*.txt .
+  156  cp /mnt/c/Temp/Daedalus_Clean_Text_1931-2014/*.txt .
+  157  ls
+  158  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+  159  ls
+  160  cd output/
+  161  ls
+  162  rm *.txt
+  163  ls
+  164  ls -al | less
+  165  rm Daedalus19*.ner.pm
+  166  ls
+  167  rm Daedalus19*
+  168  ls
+  169  ls | wc
+  170  rm total_output.tsv 
+  171  cat extract_tags.bash 
+  172  vi /usr/local/bin/extract-tagged-names.py 
+  173  ./extract_tags.bash > Daedalus_1931-2014_tags.tsv
+  174  vi Daedalus_1931-2014_tags.tsv 
+  175  vi extract_tags.bash 
+  176  ./extract_tags.bash > Daedalus_1931-2014_tags.tsv
+  177  vi Daedalus_1931-2014_tags.tsv
+  178  vi /usr/local/bin/extract-tagged-names.py 
+  179  ls
+  180  ls /mnt/c/Temp
+  181  mkdir /mnt/c/Temp/output
+  182  cp * /mnt/c/Temp/output/
+  183  dir
+  184  ls data
+  185  history
+  186  cd data
+  187  ls
+  188  mkdir Daedalus
+  189  mv *.txt Daedalus
+  190  ls
+  191  ls Daedalus/
+  192  ls output/
+  193  mv output Daedalus/
+  194  ls Daedalus/
+  195  ls 
+  196  mkdir output
+  197  ls
+  198  cd ..
+  199  cp /C
+  200  history
+  201  ls /mnt/c/Temp/Wenersborg/
+  202  cp /mnt/c/Temp/Wenersborg/temp/Wenersborg-40/*.txt .
+  203  ls
+  204  ls data
+  205  mv *.txt data
+  206  ls
+  207  cd data
+  208  ls
+  209  history
+  210  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+  211  ls
+  212  ls Daedalus/output/
+  213  cp Daedalus/output/extract_tags.bash .
+  214  ./extract_tags.bash 
+  215  ls
+  216  mv extract_tags.bash output/¨
+  217  cd output/
+  218  ls
+  219  ls ?
+  220  rm ?
+  221  ls
+  222  cp ../Daedalus/output/extract_tags.bash .
+  223  ./extract_tags.bash 
+  224  ls
+  225  cp extract_tags.bash edoff_extract_tags.sh
+  226  vi edoff_extract_tags.sh 
+  227  ./edoff_extract_tags.sh 
+  228  ls
+  229  vi edoff_extract_tags.sh 
+  230  ./edoff_extract_tags.sh 
+  231  vi edoff_extract_tags.sh 
+  232  ./edoff_extract_tags.sh > entities_1940-talet.txt
+  233  ls
+  234  zip
+  235  apt-get install zip
+  236  sudo apt-get install zip
+  237  man zip
+  238  cp * /mnt/c/Temp/Wenersborg/temp/Wenersborg-40/
+  239  ls
+  240  man zip
+  241  zip 40.zip *
+  242  ls
+  243  cp 40.zip /mnt/c/Temp/Wenersborg/
+  244  ./edoff_extract_tags.sh 
+  245  vi edoff_extract_tags.sh 
+  246  ./edoff_extract_tags.sh 
+  247  ./edoff_extract_tags.sh > entities_1940-talet.txt 
+  248  cp entities_1940-talet.txt /mnt/c/Temp/Wenersborg/temp/NER_Wenersborg_40-talet/
+  249  rm 40.zip 
+  250  zip ../NER-edoff-40-talet.zip *
+  251  ls
+  252  rm *.txt
+  253  rm *pm
+  254  ls
+  255  vi extract_tags.bash 
+  256  cp /mnt/c/Temp/Wenersborg/temp/Wenersborg-90/* .
+  257  ls
+  258  ls ..
+  259  rm ../*.txt
+  260  mv ../NER-edoff-40-talet.zip ../..
+  261  mv *.txt ..
+  262  ls
+  263  mv * ..
+  264  ls
+  265  cd ..
+  266  vi extract_tags.bash 
+  267  cp extract_tags.bash edoff_extract_tags.bash
+  268  rm edoff_extract_tags.sh 
+  269  vi edoff_extract_tags.bash 
+  270  ls
+  271  ls output/
+  272  history
+  273  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+  274  kill %
+  275  vi run-90.bash
+  276  ls
+  277  vi run-90.bash
+  278  man hsft-swener
+  279  hsft-swener --help
+  280  hfst-swener --help
+  281  hfst-swener --help | less 
+  282  ls
+  283  cp 1891-*.txt a.txt
+  284  cat 1891-*.txt > total-1891.txt
+  285  cat 1892-*.txt > total-1892.txt
+  286  cat 1893-*.txt > total-1893.txt
+  287  cat 1894-*.txt > total-1894.txt
+  288  cat 1895-*.txt > total-1895.txt
+  289  cat 1896-*.txt > total-1896.txt
+  290  cat 1897-*.txt > total-1897.txt
+  291  cat 1898-*.txt > total-1898.txt
+  292  cat 1899-*.txt > total-1899.txt
+  293  ls
+  294  ls -al total-189*
+  295  rm 189*.txt
+  296  ls
+  297  rm run-90.bash 
+  298  ls output/
+  299  rm output/*
+  300  history
+  301  /mnt/c/Temp/Wenersborg/temp/Wenersborg-90/1890* .
+  302  cp /mnt/c/Temp/Wenersborg/temp/Wenersborg-90/1890* .
+  303  ls
+  304  cls
+  305  cat 1890-*.txt > total-1890.txt
+  306  rm 1890-*
+  307  ls -al
+  308  rm total-1899.txt 
+  309  ls
+  310  ls -al
+  311  hfst-swener --times --verbose --output-to-file --output-dir ./output/ --pmatch --names *.txt
+  312  bg
+  313  ls
+  314  vi /usr/local/bin/hfst-swener 
+  315  ls
+  316  cd output/
+  317  ls
+  318  cd ..
+  319  vi edoff_extract_tags.bash 
+  320  ./edoff_extract_tags.bash > 90-talet.tags
+  321  vi edoff_extract_tags.bash 
+  322  ./edoff_extract_tags.bash > 90-talet.tags
+  323  ls -al
+  324  less 90-talet.tags 
+  325  vi edoff_extract_tags.bash 
+  326  ./edoff_extract_tags.bash 
+  327  ./edoff_extract_tags.bash -d
+  328  ./edoff_extract_tags.bash -dx
+  329  ./edoff_extract_tags.bash -dx *.txt
+  330  vi edoff_extract_tags.bash 
+  331  ./edoff_extract_tags.bash -dx
+  332  ./edoff_extract_tags.bash -dx *.txt
+  333  vi edoff_extract_tags.bash 
+  334  ./edoff_extract_tags.bash -dx *.txt
+  335  vi edoff_extract_tags.bash 
+  336  ./edoff_extract_tags.bash -dx *.txt
+  337  ./edoff_extract_tags.bash *.txt
+  338  ./edoff_extract_tags.bash -x *.txt
+  339  vi edoff_extract_tags.bash 
+  340  ./edoff_extract_tags.bash -x *.txt
+  341  ./edoff_extract_tags.bash -s ./output *.txt
+  342  ./edoff_extract_tags.bash -s ./output -d -x *.txt
+  343  vi edoff_extract_tags.bash 
+  344  ./edoff_extract_tags.bash -s ./output -d -x *.txt
+  345  vi edoff_extract_tags.bash 
+  346  ./edoff_extract_tags.bash -s ./output -d -x *.txt
+  347  vi edoff_extract_tags.bash 
+  348  fg
+  349  ./edoff_extract_tags.bash -s ./output -d -x *.txt
+  350  ./edoff_extract_tags.bash -s ./output -b 10 -d -x *.txt
+  351  vi edoff_extract_tags.bash 
+  352  ./edoff_extract_tags.bash -s ./output -b 10 -d -x *.txt
+  353  vi edoff_extract_tags.bash 
+  354  ./edoff_extract_tags.bash -s ./output -b 10 -d -x *.txt
+  355  ./edoff_extract_tags.bash -s ./output -b 6 -d -x *.txt
+  356  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  357  vi edoff_extract_tags.bash 
+  358  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  359  vi edoff_extract_tags.bash 
+  360  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  361  vi edoff_extract_tags.bash 
+  362  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  363  vi edoff_extract_tags.bash 
+  364  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  365  ls
+  366  vi edoff_extract_tags.bash 
+  367  fg
+  368  ./edoff_extract_tags.bash -s ./output -b 12 -d -x *.txt
+  369  vi edoff_extract_tags.bash 
+  370  vi edoff_extract_tags.bash 
+  371  vi extract_tags.bash 
+  372  ps axu
+  373  kill -9 31478
+  374  ,s
+  375  vi extract_tags.bash 
+  376  vi edoff_extract_tags.bash 
+  377  ./edoff_extract_tags.bash *.txt
+  378  ./edoff_extract_tags.bash ./output/total-1890.txt.ner-pm 
+  379  vi edoff_extract_tags.bash 
+  380  ls output/
+  381  ls
+  382  rm *.tags.txt
+  383  ls
+  384  ls output/
+  385  head 100 output/total-1890.txt.ner-pm 
+  386  head 10 output/total-1890.txt.ner-pm 
+  387  head -10 output/total-1890.txt.ner-pm 
+  388  head -1 output/total-1890.txt.ner-pm 
+  389  head -1 output/total-1890.txt.ner-pm > test.dat
+  390  ./edoff_extract_tags.bash test.dat 
+  391  vi edoff_extract_tags.bash 
+  392  ./edoff_extract_tags.bash test.dat 
+  393  vi edoff_extract_tags.bash 
+  394  ls
+  395  mv extract_tags.bash extract_tags.old.bash
+  396  cp edoff_extract_tags.bash  extract_tags.bash
+  397  ls
+  398  ls output/
+  399  ./edoff_extract_tags.bash output/*.ner-pm > total-1890-talet.tags
+  400  ls
+  401  ls -al
+  402  mv total-1890-talet.tags output/
+  403  ls output/
+  404  lsis_sort_field
+  405  cd output/
+  406  zip NER-Wenersborg-1990-taler.zip *
+  407  cp *.zip /mnt/c/Temp/
+  408  cd
+  409  ls
+  410  cd hfst-swener-0.9.3/
+  411  ls
+  412  du
+  413  cd ..
+  414  ls
+  415  cd data/
+  416  ls
+  417  du
+  418  ls Daedalus/
+  419  ls output/
+  420  history > G
