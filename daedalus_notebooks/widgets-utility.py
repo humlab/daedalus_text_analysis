@@ -7,6 +7,16 @@ BUTTON_STYLE=dict(description_width='initial', button_color='lightgreen')
 
 extend = lambda a,b: a.update(b) or a
 
+def create_js_callback(axis, attribute, source):
+    return CustomJS(args=dict(source=source), code="""
+        var data = source.data;
+        var start = cb_obj.start;
+        var end = cb_obj.end;
+        data['""" + axis + """'] = [start + (end - start) / 2];
+        data['""" + attribute + """'] = [end - start];
+        source.change.emit();
+    """)
+
 class WidgetUtility:
     
     @staticmethod
