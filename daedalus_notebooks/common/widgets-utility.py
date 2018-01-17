@@ -5,7 +5,8 @@ from bokeh.models import ColumnDataSource, CustomJS
 
 BUTTON_STYLE=dict(description_width='initial', button_color='lightgreen')
 
-extend = lambda a,b: a.update(b) or a
+if 'extend' not in globals():
+    extend = lambda a,b: a.update(b) or a
 
 def create_js_callback(axis, attribute, source):
     return CustomJS(args=dict(source=source), code="""
@@ -45,16 +46,29 @@ class WidgetUtility:
 
 class BaseWidgetUtility():
 
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        #self.__dict__.update(kwargs)
+    
+    def forward(self, description=None):
+        if 'progress' in self.__dict__.keys():
+            self.progress.value = self.progress.value + 1
+            if description is not None:
+                self.progress.description = description
+
     def create_int_progress_widget(self, **kwargs):
         return widgets.IntProgress(**kwargs)
 
-    def create_select_widget(self, label='Select', values=[], default=None):
-        return widgets.Dropdown(
+    def create_select_widget(self, label='', values=[], default=None, **kwargs):
+        opts = dict(
             options=values,
             value=default if default is not None and default in values else values[0] if len(values or []) > 0 else None,
             description=label,
             disabled=False
         )
+        opts = extend(opts, kwargs)
+        return widgets.Dropdown(**opts)
     
     def create_int_slider(self, description, **args):
         args = extend(dict(min=0, max=0, step = 1, value=0, disabled=False, continuous_update=False), args)
@@ -88,6 +102,12 @@ class BaseWidgetUtility():
             button.on_click(callback)
         return button
     
+    def create_text_input_widget(self, **opts):
+        return widgets.Text(**opts)
+    
+    def create_text_area_input_widget(self, **opts):
+        return widgets.Textarea(**opts)
+    
     def create_text_widget(self, element_id=None):
         value = "<span class='{}'/>".format(element_id) if element_id is not None else ''
         return widgets.HTML(value=value, placeholder='', description='')
@@ -97,7 +117,29 @@ class BaseWidgetUtility():
 
     def create_next_button(self, callback):
         return self.create_button(description=">>", callback=callback)
-               
+
+    def create_next_id_button(self, name, count):
+        
+        def handler(b):
+            control = getattr(this, name, None)
+            if control is not None:
+                control.value = (control.value + 1) % count
+            else: print('Not found')
+
+        return self.create_button(description=">>", callback=handler)
+        
+    def create_prev_id_button(self, name, count):
+        
+        def handler(b):
+            control = getattr(self, name, None)
+            if control is not None:
+                control.value = (control.value - 1) % count     
+
+        return self.create_button(description="<<", callback=handler)
+            
+    def next_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value + 1) % self.n_topics
+    def prev_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value - 1) % self.n_topics
+
 class TopicWidgets(BaseWidgetUtility):
     
     def __init__(self, n_topics, years=None, word_count=None, text_id=None):
@@ -113,8 +155,6 @@ class TopicWidgets(BaseWidgetUtility):
         self.prev_topic_id = self.create_prev_button(self.prev_topic_id_clicked)
         self.next_topic_id = self.create_next_button(self.next_topic_id_clicked)
 
-    def next_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value + 1) % self.n_topics
-    def prev_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value - 1) % self.n_topics
 
 class TopTopicWidgets(BaseWidgetUtility):
     
@@ -130,4 +170,5 @@ class TopTopicWidgets(BaseWidgetUtility):
         self.aggregate = self.select_aggregate_fn_widget(aggregates, default='mean') if not aggregates is None else None
         self.layout_algorithm = self.layout_algorithm_widget(layout_algorithms, default='Fruchterman-Reingold') \
             if not layout_algorithms is None else None
-        
+
+wf = BaseWidgetUtility()

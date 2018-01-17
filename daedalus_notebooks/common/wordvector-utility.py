@@ -7,7 +7,7 @@ from scipy import spatial
 import glob
 import re
 
-class ModelUtility:
+class WordVectorUtility:
     
     @staticmethod
     def get_model_names(source_folder):
@@ -33,7 +33,7 @@ class ModelUtility:
     @staticmethod
     def compute_most_similar_expression(word_vectors, wexpr):
         try:
-            options = ModelUtility.split_word_expression(wexpr)
+            options = WordVectorUtility.split_word_expression(wexpr)
             result = word_vectors.most_similar(positive=options['positives'], negative=options['negatives'])
             return result
         except Exception as ex:
@@ -67,10 +67,10 @@ class ModelUtility:
     def compute_similarity_to_words(word_vectors, x, y, word_list):
 
         if type(x) == 'tuple' and type(y) == 'tuple':
-            return ModelUtility.compute_similarity_to_anthologies(word_vectors, x, y, word_list)
+            return WordVectorUtility.compute_similarity_to_anthologies(word_vectors, x, y, word_list)
 
         if type(x) == 'str' and type(y) == 'str':
-            return ModelUtility.compute_similarity_to_single_words(word_vectors, x, y, word_list)
+            return WordVectorUtility.compute_similarity_to_single_words(word_vectors, x, y, word_list)
         print('Error: x and y must be wither two strings or two pair of strings')
         return None
     
