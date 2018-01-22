@@ -3,12 +3,13 @@
 import logging
 import os
 import re
-from gensim import corpora, models, matutils
-from . import SparvTextCorpus
 import pandas as pd
 import numpy as np
 from model_store import ModelStore as store
 from sklearn.feature_extraction.text import TfidfVectorizer
+from gensim import corpora, models, matutils
+
+from . import SparvTextCorpus, SparvCorpusReader
 from . import convert_to_pyLDAvis
 from . import LdaMalletService
 
@@ -29,9 +30,11 @@ class ModelComputeHelper():
 
         ''' Get document topic weights for all documents in corpus '''
         ''' Note!  minimum_probability=None filters less probable topics, set to 0 to retrieve all topcs'''
-        df_doc_topics = pd.DataFrame(sum([ [ (i, x[0], x[1]) for x in topics ]
-            for i, topics in enumerate(lda.get_document_topics(mm, minimum_probability=minimum_probability)) ], []),
-                columns = ['document_id', 'topic_id', 'weight'])
+        df_doc_topics = pd.DataFrame(
+            sum([ [ (i, x[0], x[1]) for x in topics ]
+                    for i, topics in enumerate(lda.get_document_topics(mm, minimum_probability=minimum_probability)) ], []),
+            columns=[ 'document_id', 'topic_id', 'weight' ]
+        )
 
         df = pd.merge(df_corpus_document, df_doc_topics, how='inner', left_index=True, right_on='document_id')
         return df
@@ -81,16 +84,29 @@ class ModelComputeHelper():
         # transform sparse matrix into gensim corpus
         corpus_vect_gensim = matutils.Sparse2Corpus(corpus_vect, documents_columns=False)
         from gensim.corpora.dictionary import Dictionary
-        dictionary = Dictionary.from_corpus(corpus_vect_gensim,
-                id2word=dict((id, word) for word, id in corpus_vect.vocabulary_.items()))
+        dictionary = Dictionary.from_corpus(corpus_vect_gensim, id2word=dict((id, word) for word, id in corpus_vect.vocabulary_.items()))
         return corpus_vect_gensim, dictionary
 
-def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
+DEFAULT_OPT = {
+    "skip": False,
+    "postags": '|NN|PM|',
+    "chunk_size": None,
+    "lowercase": True,
+    "min_token_size": 3,
+    "lemmatize": True,
+    'lda_engine': 'LdaMallet',
+    "lda_options": {
+        "num_topics": 50,
+        "iterations": 2000,
+    },
+    "filter_extreme_args": {}
+}
+
+def compute(source, options, target_folder='/tmp/'):
 
     for _opt in options:
 
-        opt = dict(default_opt)
-        opt.update(_opt)
+        opt = extend(DEFAULT_OPT, _opt)
 
         if opt["skip"] is True:
             continue
@@ -99,18 +115,29 @@ def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
 
         basename = store.create_base_name(opt)
         directory = os.path.join(target_folder, basename + '\\')
-        repository = store.UtilityRepository(directory)
-        repository.create(True)
+        repository = store.UtilityRepository(directory).create(True)
 
-        corpus = SparvTextCorpus(archive_name, opt.get("pos_tags"), opt.get("chunk_size", None), opt.get("lowercase", True), opt.get("filter_extremes", False))
+        postags = "'{}'".format(opt.get("postags"))
+        chunk_size = opt.get("chunk_size", None)
+        lowercase = opt.get("lowercase", True)
+        lemmatize = opt.get("lemmatize", True)
+        min_token_size = opt.get("min_token_size", 3)
 
-        ''' Convert Corpus to Matrix Market format and save to disk... '''
+        stream = SparvCorpusReader(source=source, postags=postags, chunk_size=chunk_size, lowercase=lowercase, min_token_size=min_token_size, lemmatize=lemmatize)
+
+        corpus = SparvTextCorpus(stream, opt.get("filter_extremes", False))
+
+        '''
+        Convert Corpus to Matrix Market format and save to disk...
+        '''
         df_corpus_document = ModelComputeHelper.get_corpus_document(corpus)
         corpora.MmCorpus.serialize(os.path.join(repository.directory, 'corpus.mm'), corpus)
         corpus.dictionary.save(os.path.join(repository.directory, 'corpus.dict.gz'))
         df_corpus_document.to_csv(os.path.join(repository.directory, 'corpus_documents.csv'), sep='\t')
 
-        ''' Use mm as corpore instead of (slower) DaedalusTextCorpus... '''
+        '''
+        Use mm as corpore instead of (slower) DaedalusTextCorpus...
+        '''
         dictionary = corpora.Dictionary.load(os.path.join(repository.directory, 'corpus.dict.gz'))
         mm = corpora.MmCorpus(os.path.join(repository.directory, 'corpus.mm'))
 
@@ -129,9 +156,7 @@ def compute(archive_name, options, default_opt={}, target_folder='/tmp/'):
             repository.zip(model.ftopicwordweights())
 
         else:
-
             lda_options.update({ 'dtype': np.float64 })
-
             lda = models.LdaModel(corpus=mm, id2word=dictionary, **lda_options)
 
         lda_filename = os.path.join(repository.directory, 'gensim_model_{}.gensim.gz'.format(basename))

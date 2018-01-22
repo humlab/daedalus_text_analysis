@@ -1,24 +1,20 @@
 import gensim
 import itertools
-from . import SparvCorpusReader
 
 class SparvTextCorpus(gensim.corpora.TextCorpus):
 
-    def __init__(self, archive_name, pos_tags="'|NN|'", chunk_size=1000, lowercase=True, filter_extreme_args=None):
+    def __init__(self, stream, filter_extreme_args=None):
 
         self.dictionary = None
-        self.archive_name = archive_name
-        self.pos_tags = "'{}'".format(pos_tags)
-        self.xslt_filename = './extract_tokens.xslt'
-        self.reader = SparvCorpusReader(self.xslt_filename, archive_name, self.pos_tags, chunk_size, lowercase)
+        self.reader = stream
         self.document_length = []
         self.corpus_documents = []
         self.filter_extreme_args = filter_extreme_args
 
-        super(SparvTextCorpus, self).__init__(input=True) #, token_filters=[])
+        super(SparvTextCorpus, self).__init__(input=True)  # , token_filters=[])
 
     def init_dictionary(self, dictionary):
-        #self.dictionary = corpora.Dictionary(self.getstream())
+        # self.dictionary = corpora.Dictionary(self.getstream())
         self.dictionary = gensim.corpora.Dictionary()
         self.dictionary.add_documents(self.get_texts())
         if self.filter_extreme_args is not None and isinstance(self.filter_extreme_args, dict):
@@ -26,6 +22,10 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
             self.dictionary.compactify()
 
     def getstream(self):
+        '''
+        Returns stream of documents.
+        Also collects documents' name and length for each pass
+        '''
         corpus_documents = []
         document_length = []
         for document_name, document in self.reader:
@@ -36,6 +36,9 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
         self.corpus_documents = corpus_documents
 
     def get_texts(self):
+        '''
+        This is mandatory method from gensim.corpora.TextCorpus. Returns stream of documents.
+        '''
         for document in self.getstream():
             yield document
 

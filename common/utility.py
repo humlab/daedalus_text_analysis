@@ -12,6 +12,9 @@ __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 
 sys.path.append(__cwd__)
 
+def extend(a, b):
+    return a.update(b) or a
+
 class FileUtility:
 
     def __init__(self, directory):
@@ -24,6 +27,8 @@ class FileUtility:
 
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
+
+        return self
 
     @staticmethod
     def read_excel(filename, sheet):

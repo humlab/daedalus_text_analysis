@@ -34,10 +34,10 @@ class LdaMalletService(models.wrappers.LdaMallet):
     def ftopicwordweights(self):
         return self.prefix + 'topicwordweights.txt'
 
-    def train(self, corpus):
+    def train(self, corpu):
         from gensim.utils import check_output
         self.convert_input(corpus, infer=False)
-        cmd = self.mallet_path + ' train-topics --input %s --num-topics %s  --alpha %s --optimize-interval %s '\
+        cmd = self.mallet_patsh + ' train-topics --input %s --num-topics %s  --alpha %s --optimize-interval %s '\
             '--num-threads %s --output-state %s --output-doc-topics %s --output-topic-keys %s --topic-word-weights-file %s '\
             '--num-iterations %s --inferencer-filename %s --doc-topics-threshold %s'
         cmd = cmd % (
