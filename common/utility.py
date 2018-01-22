@@ -15,6 +15,9 @@ sys.path.append(__cwd__)
 def extend(a, b):
     return a.update(b) or a
 
+def revdict(d):
+    return {v: k for (k, v) in iteritems(dict(d))}
+
 class FileUtility:
 
     def __init__(self, directory):

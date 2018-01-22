@@ -22,5 +22,4 @@ if __name__ == "__main__":
         { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 150, "iterations": 2000 }, 'engine_path': mallet_path  }
         # { 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": 50, "iterations": 999, 'chunksize': 10000, 'passes': 2 } }
     ]
-
     compute(source=source, options=options)

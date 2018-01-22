@@ -1,11 +1,12 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 import unittest
-from sparv_annotater import SparvCorpusReader, SparvTextCorpus, ArchiveAnnotater, AnnotateService
-from utility import join_test_data_path
+from sparv_annotater import SparvCorpusReader, SparvTextCorpus, AnnotateService
+from utility import join_test_data_path, generate_temp_filename
+from gensim import corpora
 
 class SparvCorpusTestCase(unittest.TestCase):
 
@@ -44,11 +45,11 @@ class SparvCorpusTestCase(unittest.TestCase):
 </corpus>
         '''
 
-    #def run(self, result=None):
+    # def run(self, result=None):
     #    # if type(self) is not SparvCorpusTestCase:
     #    super(SparvCorpusTestCase, self).run(result)
 
-    #def tearDown(self):
+    # def tearDown(self):
     #    # remove files etc....
     #    pass
 
@@ -59,8 +60,8 @@ class SparvCorpusTestCase(unittest.TestCase):
         source = [('test.xml', self.xml_data)]
         stream = SparvCorpusReader(source=source, postags="''", chunk_size=None, lowercase=False, lemmatize=False, min_token_size=0)
         _, tokens = next(iter(stream))
-        expected_tokens = ['Föremålet', ',', 'som', 'förutom', 'själva', 'vertikalfräsmaskinen', ',', 'består', 'av', 'ett', 'styrskåp',
-            'och', 'en', 'omformare', 'utgör', 'ett', 'viktigt', 'steg', 'i', 'utvecklingen', 'av', 'den', 'moderna', 'verkstadsindustrin', '.']
+        expected_tokens = ['Föremålet', 'som', 'förutom', 'själva', 'vertikalfräsmaskinen', 'består', 'av', 'ett', 'styrskåp',
+            'och', 'en', 'omformare', 'utgör', 'ett', 'viktigt', 'steg', 'i', 'utvecklingen', 'av', 'den', 'moderna', 'verkstadsindustrin']
         self.assertSetEqual(set(expected_tokens), set(tokens))
 
     def test_extract_all_lemma(self):
@@ -73,7 +74,7 @@ class SparvCorpusTestCase(unittest.TestCase):
         self.assertSetEqual(set(expected_tokens), set(tokens))
 
     def test_extract_specific_pos(self):
- 
+
         source = [('test.xml', self.xml_data)]
         expected_nouns = ['föremål', 'vertikalfräsmaskinen', 'styrskåp', 'omformare', 'steg', 'utveckling', 'verkstadsindustri']
         expected_verbs = ['bestå', 'utgöra' ]
@@ -130,9 +131,9 @@ class SparvCorpusTestCase(unittest.TestCase):
 
         stream = SparvCorpusReader(source=source, postags="'|NN|'", chunk_size=None, lowercase=True)
         _, tokens = next(iter(stream))
-        self.assertSetEqual(set(map(lambda x: x.lower(), expected_tokens)), set(tokens))        
+        self.assertSetEqual(set(map(lambda x: x.lower(), expected_tokens)), set(tokens))
 
-    def xtest_pos_extract_of_larger_file(self):
+    def test_pos_extract_of_larger_file(self):
         filename = '1987_article_08.xml'
         filepath = join_test_data_path(filename)
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -150,10 +151,89 @@ teknik är
     informations-
     teknik är
     informationsteknik är
+informations-teknik är
+        '''
+        expected_result = u'''
+informationteknik
+ är
+    informationsteknik
+ är
+    informationsteknik är
+informations-teknik är
         '''
         service = AnnotateService()
-        clean_text = service.remove_hyphens(test_data)
-        print(clean_text)
+        result = service.remove_hyphens(test_data)
+        self.assertEqual(expected_result, result)
+
+    def test_sparv_corpus(self):
+
+        xml_data = '''
+        <corpus><paragraph>
+        <sentence id="xxx">
+        <w pos="NN"  lemma="|">Humlab</w>
+        <w pos="VB"  lemma="|vara|">är</w>
+        <w pos="DT"  lemma="|en|">ett</w>
+        <w pos="NN"  lemma="|exempel|">exempel</w>
+        <w pos="PP"  lemma="|på|">på</w>
+        <w pos="DT"  lemma="|en|">ett</w>
+        <w pos="NN"  lemma="|arbetsenhet|">arbetsenhet</w>
+        <w pos="HP"  lemma="|">som</w>
+        <w pos="JJ"  lemma="|digital|">digital</w>
+        <w pos="VB"  lemma="|utför|">utför</w>
+        <w pos="NN"  lemma="|forskning|">forskning</w>
+        <w pos="MAD" lemma="|" >.</w>
+        </sentence>
+        <sentence id="xxx">
+        <w pos="NN"  lemma="|">Humlab</w>
+        <w pos="VB"  lemma="|vara|">är</w>
+        <w pos="DT"  lemma="|en|">en</w>
+        <w pos="NN"  lemma="|arbetsenhet|">arbetsenhet</w>
+        <w pos="KN"  lemma="|och|">och</w>
+        <w pos="AB"  lemma="|inte|">inte</w>
+        <w pos="DT"  lemma="|en|">en</w>
+        <w pos="NN"  lemma="|centrumbildning|">centrumbildning</w>
+        <w pos="MAD" lemma="|" >.</w>
+        </sentence>
+        </paragraph></corpus>
+        '''
+
+        expected_tokens = ['humlab', 'exempel', 'arbetsenhet', 'forskning', 'centrumbildning']
+
+        source = [ ('test.xml', xml_data)]
+
+        stream = SparvCorpusReader(source=source, postags="'|NN|'", chunk_size=None, lowercase=True, min_token_size=3, lemmatize=True)
+
+        corpus = SparvTextCorpus(stream=stream)
+        self.assertIsNotNone(corpus)
+        document, tokens = next(iter(stream))
+        self.assertIsNotNone(tokens)
+        self.assertEqual('test_01.txt', document)
+        self.assertSetEqual(set(expected_tokens), set(tokens))
+
+        self.assertEqual(len(expected_tokens), len(corpus.dictionary.token2id.keys()))
+        '''
+        Check id2token which is lazy (ned to don an index access before created
+        '''
+        self.assertEqual(len(corpus.dictionary.token2id.keys()), len(corpus.dictionary.id2token.keys()))
+
+        temp_corpus_filename = generate_temp_filename('corpus.mm')
+        temp_dictionary_filename = generate_temp_filename('corpus.dict.gz')
+
+        corpora.MmCorpus.serialize(temp_corpus_filename, corpus)
+        corpus.dictionary.save(temp_dictionary_filename)
+
+        loaded_dictionary = corpora.Dictionary.load(temp_dictionary_filename)
+        loaded_corpus = corpora.MmCorpus(temp_corpus_filename)
+
+        self.assertDictEqual(corpus.dictionary.token2id, loaded_dictionary.token2id)
+        self.assertDictEqual(corpus.dictionary.id2token, loaded_dictionary.id2token)
+
+        doc0_expected = set((corpus.dictionary[x], y) for x, y in next(iter(corpus)))
+        doc0_stored = set((loaded_dictionary[x], y) for x, y in next(iter(loaded_corpus)))
+
+        self.assertSetEqual(doc0_expected, doc0_stored)
+        os.remove(temp_corpus_filename)
+        os.remove(temp_dictionary_filename)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

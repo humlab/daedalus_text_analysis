@@ -3,23 +3,20 @@ import itertools
 
 class SparvTextCorpus(gensim.corpora.TextCorpus):
 
-    def __init__(self, stream, filter_extreme_args=None):
+    def __init__(self, stream, prune_at=2000000):
 
         self.dictionary = None
         self.reader = stream
         self.document_length = []
         self.corpus_documents = []
-        self.filter_extreme_args = filter_extreme_args
+        self.prune_at = prune_at
 
         super(SparvTextCorpus, self).__init__(input=True)  # , token_filters=[])
 
     def init_dictionary(self, dictionary):
-        # self.dictionary = corpora.Dictionary(self.getstream())
-        self.dictionary = gensim.corpora.Dictionary()
-        self.dictionary.add_documents(self.get_texts())
-        if self.filter_extreme_args is not None and isinstance(self.filter_extreme_args, dict):
-            self.dictionary.filter_extremes(**self.filter_extreme_args)
-            self.dictionary.compactify()
+        self.dictionary = gensim.corpora.Dictionary(self.get_texts(), prune_at=self.prune_at)
+        if (len(self.dictionary) > 0):
+            _ = self.dictionary[0]  # force formation of dictionary.id2token
 
     def getstream(self):
         '''

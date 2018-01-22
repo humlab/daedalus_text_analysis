@@ -5,10 +5,10 @@ import os
 import re
 import pandas as pd
 import numpy as np
-from model_store import ModelStore as store
+from . model_store import ModelStore as store
 from sklearn.feature_extraction.text import TfidfVectorizer
 from gensim import corpora, models, matutils
-
+from common.utility import extend, revdict
 from . import SparvTextCorpus, SparvCorpusReader
 from . import convert_to_pyLDAvis
 from . import LdaMalletService
@@ -53,7 +53,7 @@ class ModelComputeHelper():
 
     @staticmethod
     def get_corpus_document(sparvCorpus):
-        df = pd.DataFrame({'document': sparvCorpus.corpus_documents,'length': sparvCorpus.document_length })
+        df = pd.DataFrame({'document': sparvCorpus.corpus_documents, 'length': sparvCorpus.document_length })
         df['year'] = df.document.apply(lambda x: int(re.search('(\d{4})', x).group(0)))
         return df
 
@@ -99,7 +99,7 @@ DEFAULT_OPT = {
         "num_topics": 50,
         "iterations": 2000,
     },
-    "filter_extreme_args": {}
+    'prune_at': 2000000
 }
 
 def compute(source, options, target_folder='/tmp/'):
@@ -125,7 +125,8 @@ def compute(source, options, target_folder='/tmp/'):
 
         stream = SparvCorpusReader(source=source, postags=postags, chunk_size=chunk_size, lowercase=lowercase, min_token_size=min_token_size, lemmatize=lemmatize)
 
-        corpus = SparvTextCorpus(stream, opt.get("filter_extremes", False))
+        prune_at = opt.get("prune_at", 2000000)
+        corpus = SparvTextCorpus(stream, prune_at=prune_at)
 
         '''
         Convert Corpus to Matrix Market format and save to disk...
@@ -170,7 +171,8 @@ def compute(source, options, target_folder='/tmp/'):
         df_topic_token_weights = ModelComputeHelper.get_topic_token_weight_toplist(lda, num_words=200)
         df_topic_overview = ModelComputeHelper.get_topic_overview(df_topic_token_weights)
         df_yearly_mean_topic_weights = ModelComputeHelper.get_yearly_mean_topic_weight(df_doc_topic_weights, df_topic_overview)
-        df_dictionary = pd.DataFrame({ 'token': dictionary.id2token, 'dfs': dictionary.dfs }).reset_index().set_index('index')[['token', 'dfs']]
+
+        df_dictionary = pd.DataFrame({ 'token': revdict(dictionary.token2id), 'dfs': dictionary.dfs }).reset_index().set_index('index')[['token', 'dfs']]
 
         repository.save_excel(
             [(df_doc_topic_weights.reset_index(), 'doc_topic_weights'),
