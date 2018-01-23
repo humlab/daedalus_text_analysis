@@ -55,11 +55,11 @@ def plot_PCA_euclidean_distanc_network(coordinates, min_norm_weight=0.9):
 
 if __name__ == '__main__':
 
-    source_folder = '/tmp'
-    models_names = store.get_model_names(source_folder)
+    data_folder = '/tmp'
+    models_names = store.get_model_names(data_folder)
 
     basename = models_names[-1]
-    data_folder = os.path.join(source_folder, basename)
+
     lda = store.load_gensim_lda_model(data_folder, basename)
 
     coordinates = compute_PCA_euclidean_distances(lda)

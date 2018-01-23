@@ -12,38 +12,38 @@ class SparvCorpusTestCase(unittest.TestCase):
 
     def setUp(self):
         self.xml_data = '''
-<corpus>
-<paragraph>
-<sentence id="e94c6-e6118">
-<w pos="NN" msd="NN.NEU.SIN.DEF.NOM" lemma="|föremål|" lex="|föremål..nn.1|" sense="|föremål..1:0.816|föremål..2:0.184|" ref="08" dephead="06" deprel="PA">Föremålet</w>
-<w pos="MID" msd="MID" lemma="|" lex="|" sense="|" ref="09" dephead="05" deprel="IK">,</w>
-<w pos="HP" msd="HP.-.-.-" lemma="|" lex="|" sense="|" ref="10" dephead="15" deprel="SS">som</w>
-<w pos="PP" msd="PP" lemma="|förutom|" lex="|förutom..pp.1|" sense="|förutom..1:-1.000|" ref="11" dephead="10" deprel="UA">förutom</w>
-<w pos="JJ" msd="JJ.POS.UTR+NEU.SIN.DEF.NOM" lemma="|själv|själva|" lex="|själv..pn.1|själva..pn.1|" sense="|själv..1:-1.000|själv..2:-1.000|själv..3:-1.000|" ref="12" dephead="13" deprel="DT">själva</w>
-<w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|" lex="|" sense="|" ref="13" dephead="11" deprel="PA">vertikalfräsmaskinen</w>
-<w pos="MID" msd="MID" lemma="|" lex="|" sense="|" ref="14" dephead="15" deprel="IK">,</w>
-<w pos="VB" msd="VB.PRS.AKT" lemma="|bestå|" lex="|bestå..vb.1|bestå..vb.2|" sense="|bestå..4:0.561|bestå..3:0.221|bestå..1:0.129|bestå..2:0.089|" ref="15" deprel="ROOT">består</w>
-<w pos="PP" msd="PP" lemma="|av|" lex="|av..pp.1|" sense="|av..1:-1.000|" ref="16" dephead="15" deprel="OA">av</w>
-<w pos="DT" msd="DT.NEU.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="17" dephead="18" deprel="DT">ett</w>
-<w pos="NN" msd="NN.NEU.SIN.IND.NOM" lemma="|" lex="|" sense="|" ref="18" dephead="19" deprel="CJ">styrskåp</w>
-<w pos="KN" msd="KN" lemma="|och|" lex="|och..kn.1|" sense="|och..1:-1.000|" ref="19" dephead="16" deprel="PA">och</w>
-<w pos="DT" msd="DT.UTR.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="20" dephead="21" deprel="DT">en</w>
-<w pos="NN" msd="NN.UTR.SIN.IND.NOM" lemma="|omformare|" lex="|omformare..nn.1|" sense="|omformare..1:-1.000|" ref="21" dephead="19" deprel="CJ">omformare</w>
-<w pos="VB" msd="VB.PRS.AKT" lemma="|utgöra|" lex="|utgöra..vb.1|" sense="|utgöra..1:-1.000|" ref="22" dephead="15" deprel="OO">utgör</w>
-<w pos="DT" msd="DT.NEU.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="23" dephead="25" deprel="DT">ett</w>
-<w pos="JJ" msd="JJ.POS.NEU.SIN.IND.NOM" lemma="|viktig|" lex="|viktig..av.1|" sense="|viktig..1:1.000|viktig..2:0.000|" ref="24" dephead="25" deprel="AT">viktigt</w>
-<w pos="NN" msd="NN.NEU.SIN.IND.NOM" lemma="|steg|" lex="|steg..nn.1|" sense="|steg..2:0.940|steg..1:0.060|" ref="25" dephead="22" deprel="OO">steg</w>
-<w pos="PP" msd="PP" lemma="|i|" lex="|i..pp.1|" sense="|i..2:-1.000|" ref="26" dephead="25" deprel="ET">i</w>
-<w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|utveckling|" lex="|utveckling..nn.1|" sense="|utveckling..1:1.000|utveckling..2:0.000|" ref="27" dephead="26" deprel="HD">utvecklingen</w>
-<w pos="PP" msd="PP" lemma="|av|" lex="|av..pp.1|" sense="|av..1:-1.000|" ref="28" dephead="25" deprel="ET">av</w>
-<w pos="DT" msd="DT.UTR.SIN.DEF" lemma="|den|en|" lex="|den..pn.1|en..al.1|" sense="|den..2:-1.000|den..1:-1.000|en..2:-1.000|" ref="29" dephead="31" deprel="DT">den</w>
-<w pos="JJ" msd="JJ.POS.UTR+NEU.SIN.DEF.NOM" lemma="|modern|" lex="|modern..av.1|" sense="|modern..1:-1.000|" ref="30" dephead="31" deprel="AT">moderna</w>
-<w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|verkstadsindustri|" lex="|verkstadsindustri..nn.1|" sense="|verkstadsindustri..1:-1.000|" ref="31" dephead="28" deprel="PA">verkstadsindustrin</w>
-<w pos="MAD" msd="MAD" lemma="|" lex="|" sense="|" ref="32" dephead="15" deprel="IP">.</w>
-</sentence>
-</paragraph>
-</corpus>
-        '''
+            <corpus>
+            <paragraph>
+            <sentence id="e94c6-e6118">
+            <w pos="NN" msd="NN.NEU.SIN.DEF.NOM" lemma="|föremål|" lex="|föremål..nn.1|" sense="|föremål..1:0.816|föremål..2:0.184|" ref="08" dephead="06" deprel="PA">Föremålet</w>
+            <w pos="MID" msd="MID" lemma="|" lex="|" sense="|" ref="09" dephead="05" deprel="IK">,</w>
+            <w pos="HP" msd="HP.-.-.-" lemma="|" lex="|" sense="|" ref="10" dephead="15" deprel="SS">som</w>
+            <w pos="PP" msd="PP" lemma="|förutom|" lex="|förutom..pp.1|" sense="|förutom..1:-1.000|" ref="11" dephead="10" deprel="UA">förutom</w>
+            <w pos="JJ" msd="JJ.POS.UTR+NEU.SIN.DEF.NOM" lemma="|själv|själva|" lex="|själv..pn.1|själva..pn.1|" sense="|själv..1:-1.000|själv..2:-1.000|själv..3:-1.000|" ref="12" dephead="13" deprel="DT">själva</w>
+            <w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|" lex="|" sense="|" ref="13" dephead="11" deprel="PA">vertikalfräsmaskinen</w>
+            <w pos="MID" msd="MID" lemma="|" lex="|" sense="|" ref="14" dephead="15" deprel="IK">,</w>
+            <w pos="VB" msd="VB.PRS.AKT" lemma="|bestå|" lex="|bestå..vb.1|bestå..vb.2|" sense="|bestå..4:0.561|bestå..3:0.221|bestå..1:0.129|bestå..2:0.089|" ref="15" deprel="ROOT">består</w>
+            <w pos="PP" msd="PP" lemma="|av|" lex="|av..pp.1|" sense="|av..1:-1.000|" ref="16" dephead="15" deprel="OA">av</w>
+            <w pos="DT" msd="DT.NEU.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="17" dephead="18" deprel="DT">ett</w>
+            <w pos="NN" msd="NN.NEU.SIN.IND.NOM" lemma="|" lex="|" sense="|" ref="18" dephead="19" deprel="CJ">styrskåp</w>
+            <w pos="KN" msd="KN" lemma="|och|" lex="|och..kn.1|" sense="|och..1:-1.000|" ref="19" dephead="16" deprel="PA">och</w>
+            <w pos="DT" msd="DT.UTR.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="20" dephead="21" deprel="DT">en</w>
+            <w pos="NN" msd="NN.UTR.SIN.IND.NOM" lemma="|omformare|" lex="|omformare..nn.1|" sense="|omformare..1:-1.000|" ref="21" dephead="19" deprel="CJ">omformare</w>
+            <w pos="VB" msd="VB.PRS.AKT" lemma="|utgöra|" lex="|utgöra..vb.1|" sense="|utgöra..1:-1.000|" ref="22" dephead="15" deprel="OO">utgör</w>
+            <w pos="DT" msd="DT.NEU.SIN.IND" lemma="|en|" lex="|en..al.1|" sense="|den..1:-1.000|en..2:-1.000|" ref="23" dephead="25" deprel="DT">ett</w>
+            <w pos="JJ" msd="JJ.POS.NEU.SIN.IND.NOM" lemma="|viktig|" lex="|viktig..av.1|" sense="|viktig..1:1.000|viktig..2:0.000|" ref="24" dephead="25" deprel="AT">viktigt</w>
+            <w pos="NN" msd="NN.NEU.SIN.IND.NOM" lemma="|steg|" lex="|steg..nn.1|" sense="|steg..2:0.940|steg..1:0.060|" ref="25" dephead="22" deprel="OO">steg</w>
+            <w pos="PP" msd="PP" lemma="|i|" lex="|i..pp.1|" sense="|i..2:-1.000|" ref="26" dephead="25" deprel="ET">i</w>
+            <w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|utveckling|" lex="|utveckling..nn.1|" sense="|utveckling..1:1.000|utveckling..2:0.000|" ref="27" dephead="26" deprel="HD">utvecklingen</w>
+            <w pos="PP" msd="PP" lemma="|av|" lex="|av..pp.1|" sense="|av..1:-1.000|" ref="28" dephead="25" deprel="ET">av</w>
+            <w pos="DT" msd="DT.UTR.SIN.DEF" lemma="|den|en|" lex="|den..pn.1|en..al.1|" sense="|den..2:-1.000|den..1:-1.000|en..2:-1.000|" ref="29" dephead="31" deprel="DT">den</w>
+            <w pos="JJ" msd="JJ.POS.UTR+NEU.SIN.DEF.NOM" lemma="|modern|" lex="|modern..av.1|" sense="|modern..1:-1.000|" ref="30" dephead="31" deprel="AT">moderna</w>
+            <w pos="NN" msd="NN.UTR.SIN.DEF.NOM" lemma="|verkstadsindustri|" lex="|verkstadsindustri..nn.1|" sense="|verkstadsindustri..1:-1.000|" ref="31" dephead="28" deprel="PA">verkstadsindustrin</w>
+            <w pos="MAD" msd="MAD" lemma="|" lex="|" sense="|" ref="32" dephead="15" deprel="IP">.</w>
+            </sentence>
+            </paragraph>
+            </corpus>
+                '''
 
     # def run(self, result=None):
     #    # if type(self) is not SparvCorpusTestCase:

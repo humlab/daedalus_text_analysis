@@ -4,6 +4,7 @@ from lxml import etree
 import zipfile
 from io import StringIO
 import gensim
+from common.utility import isfileext
 
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 XSLT_FILENAME = os.path.join(script_path, 'extract_tokens.xslt')
@@ -33,6 +34,7 @@ class SparvCorpusReader():
         1) ZIP-archive or
         2) list of (document,XML) tuples or
         3) folder with XML files (not implemented)
+        4) a single XML file
 
     Sparv tags:
     https://spraakbanken.gu.se/swe/forskning/infrastruktur/sparv/annotationer
@@ -89,14 +91,19 @@ class SparvCorpusReader():
                 yield (document, content)
         elif isinstance(source, str):
             if os.path.isfile(source):
-                with zipfile.ZipFile(source) as zf:
-                    filenames = [ x for x in zf.namelist() if x.endswith("xml") ]
-                    for filename in filenames:
-                        with zf.open(filename) as text_file:
-                            content = text_file.read().decode('utf8')
-                        if content == '':
-                            continue
-                        yield (filename, content)
+                if source.endswith('zip'):
+                    with zipfile.ZipFile(source) as zf:
+                        filenames = [ x for x in zf.namelist() if x.endswith("xml") ]
+                        for filename in filenames:
+                            with zf.open(filename) as text_file:
+                                content = text_file.read().decode('utf8')
+                            if content == '':
+                                continue
+                            yield (filename, content)
+                elif source.endswith('xml'):
+                    with open(source, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    yield (source, content)
             elif os.path.isdir(source):
                 print("Path: source not implemented!")
                 raise Exception("Path: source not implemented!")

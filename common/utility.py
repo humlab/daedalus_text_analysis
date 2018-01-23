@@ -16,8 +16,16 @@ def extend(a, b):
     return a.update(b) or a
 
 def revdict(d):
-    return {v: k for (k, v) in iteritems(dict(d))}
+    return {
+        d[k]: k for k in d.keys()
+    }
 
+def isfileext(path, extension):
+    try:
+        _, file_extension = os.path.splitext(path)
+        return file_extension == extension
+    except:
+        return False
 class FileUtility:
 
     def __init__(self, directory):
@@ -71,7 +79,7 @@ class FileUtility:
         return os.path.join(self.directory, '{}_{}{}'.format(basename, time.strftime("%Y%m%d%H%M"), extension))
 
     @staticmethod
-    def zip(self, path):
+    def compress(path):
         if not os.path.exists(path):
             print("ERROR: file not found (zip)")
             return

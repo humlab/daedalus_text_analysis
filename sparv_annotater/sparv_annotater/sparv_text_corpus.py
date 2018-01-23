@@ -1,5 +1,6 @@
 import gensim
 import itertools
+import re
 
 class SparvTextCorpus(gensim.corpora.TextCorpus):
 
@@ -48,3 +49,18 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
         # Create a sorted list from the defaultdict: sorted_word_count
         sorted_word_count = sorted(total_word_count, key=lambda w: w[1], reverse=True)
         return sorted_word_count
+
+    def get_corpus_documents(self, attrib_extractors=None):
+        attrib_extractors = attrib_extractors or []
+        document_ids, document_names = list(zip(*(
+            (document_id, document) for document_id, document in enumerate(self.corpus_documents)
+        )))
+        data = dict(
+            document_id=document_ids,
+            document=document_names,
+            length=self.document_length
+        )
+        for (n, f) in attrib_extractors:
+            data[n] = [ f(x) for x in document_names ]
+        return data
+
