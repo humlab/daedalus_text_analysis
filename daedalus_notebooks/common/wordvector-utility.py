@@ -21,6 +21,15 @@ class WordVectorUtility:
         return word_vectors
     
     @staticmethod
+    def create_X_m_space_matrix(word_vectors, words):
+        index2word = [ x for x in words if x in word_vectors.vocab ]
+        dim = word_vectors.syn0.shape[1]
+        X_m_space = np.ndarray(shape=(len(index2word), dim), dtype='float64')
+        for i in range(0, len(index2word)):
+            X_m_space[i] = word_vectors[index2word[i]]
+        return X_m_space, index2word
+
+    @staticmethod
     def split_word_expression(wexpr):
         wexpr = wexpr.lower().replace(' ', '')
         positives = re.findall(r"(?:^|(?<![-\w]))([\w]+)", wexpr)
@@ -35,10 +44,10 @@ class WordVectorUtility:
         try:
             options = WordVectorUtility.split_word_expression(wexpr)
             result = word_vectors.most_similar(positive=options['positives'], negative=options['negatives'])
-            return result
+            return result, options or dict(positives=[], negatives=[])
         except Exception as ex:
             print(str(ex))
-            return None
+            return None, None
         
     @staticmethod
     def compute_similarity_to_anthologies(word_vectors, scale_x_pair, scale_y_pair, word_list):

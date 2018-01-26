@@ -2,7 +2,8 @@ import math
 import community # pip3 install python-louvain packages
 from networkx.algorithms import bipartite
 import networkx as nx
-
+import bokeh.models as bm
+from itertools import product
 if 'extend' not in globals():
     extend = lambda a,b: a.update(b) or a
     

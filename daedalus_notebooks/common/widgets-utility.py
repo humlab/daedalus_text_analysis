@@ -78,7 +78,7 @@ class BaseWidgetUtility():
         args = extend(dict(min=0.0, max=0.0, step = 0.1, value=0.0, disabled=False, continuous_update=False), args)
         return widgets.FloatSlider(description=description, **args)
     
-    def select_aggregate_fn_widget(self, options=['mean', 'sum', 'std', 'min', 'max'], default='mean'):
+    def select_aggregate_fn_widget(self, options=['mean', 'sum', 'std', 'min', 'max'], default='max'):
         return self.create_select_widget('Aggregate', options, default)
             
     def select_year_widget(self, options=None):
@@ -119,23 +119,19 @@ class BaseWidgetUtility():
         return self.create_button(description=">>", callback=callback)
 
     def create_next_id_button(self, name, count):
-        
-        def handler(b):
-            control = getattr(this, name, None)
+        def f(b):
+            control = getattr(self, name, None)
             if control is not None:
                 control.value = (control.value + 1) % count
-            else: print('Not found')
-
-        return self.create_button(description=">>", callback=handler)
+        return self.create_button(description=">>", callback=f)
         
     def create_prev_id_button(self, name, count):
         
-        def handler(b):
+        def f(b):
             control = getattr(self, name, None)
             if control is not None:
                 control.value = (control.value - 1) % count     
-
-        return self.create_button(description="<<", callback=handler)
+        return self.create_button(description="<<", callback=f)
             
     def next_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value + 1) % self.n_topics
     def prev_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value - 1) % self.n_topics

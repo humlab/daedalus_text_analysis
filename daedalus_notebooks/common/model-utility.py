@@ -57,7 +57,7 @@ class ModelUtility:
     @staticmethod
     def get_result_model_sheet(data_folder, basename, sheet):
         if ModelUtility.get_excel_models(data_folder).get(basename).get(sheet, None) is None:
-            print('Model not loaded. Loading...')
+            # print('Model not loaded. Loading...')
             csv_filename = os.path.join(data_folder, '{}/'.format(basename), 'result_{}_{}.csv'.format(basename, sheet))
             if os.path.exists(csv_filename):
                 #print('Loading CSV...')
