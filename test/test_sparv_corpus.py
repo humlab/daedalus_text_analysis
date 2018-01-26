@@ -8,6 +8,8 @@ from sparv_annotater import SparvCorpusReader, SparvTextCorpus, AnnotateService
 from utility import join_test_data_path, generate_temp_filename
 from gensim import corpora
 
+logger = logging.getLogger(__name__)
+
 class SparvCorpusTestCase(unittest.TestCase):
 
     def setUp(self):

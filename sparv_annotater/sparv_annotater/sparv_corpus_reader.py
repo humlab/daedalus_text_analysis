@@ -5,6 +5,9 @@ import zipfile
 from io import StringIO
 import gensim
 from common.utility import isfileext
+import logging
+
+logger = logging.getLogger(__name__)
 
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 XSLT_FILENAME = os.path.join(script_path, 'extract_tokens.xslt')
@@ -105,9 +108,11 @@ class SparvCorpusReader():
                         content = f.read()
                     yield (source, content)
             elif os.path.isdir(source):
-                print("Path: source not implemented!")
+                logger.error("Path: source not implemented!")
                 raise Exception("Path: source not implemented!")
-                
+            else:
+                raise Exception("Unable to determine type of source (file not found)")
+
     def __iter__(self):
 
         for (filename, content) in self.documents_iterator(self.source):

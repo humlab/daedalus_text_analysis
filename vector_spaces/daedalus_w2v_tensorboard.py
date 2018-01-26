@@ -14,7 +14,5 @@ if __name__ == "__main__":
         model_path = '../data/model_output.dat'
         output_path  = './projector'
 
-        #print("Please provice model path and output path")
-
     model = Word2Vec.load(model_path)
     W2V_TensorFlow().convert(model, output_path)

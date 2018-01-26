@@ -11,6 +11,9 @@ import matplotlib as mpl
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from NER_helper import read_from_excel
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 # %% Setup Data
 geocoded_location_tags_filename = './data/Daedalus_1931-2014_geocoded_location_tags.xlsx'
@@ -80,7 +83,7 @@ def setup_countries(ax, df_decade, cmap, shapename='admin_0_countries'):
     for country in get_country_shapes():
         country_code = country.attributes['iso_a3']
         if not country_code in df_decade.index:
-            #ax.add_geometries(country.geometry, ccrs.PlateCarree(),edgecolor='#000000', facecolor='#ffffff')
+            # ax.add_geometries(country.geometry, ccrs.PlateCarree(),edgecolor='#000000', facecolor='#ffffff')
             continue
         country_codes.append(country_code)
         value = df_decade.loc[country_code].n_occ_per_kWords
@@ -90,7 +93,7 @@ def setup_countries(ax, df_decade, cmap, shapename='admin_0_countries'):
     if len(not_found_countries) > 0:
         # GUF=French Guiana
         # SJM=Svalbard and Jan Mayen MTQ=Martinique
-        print("Warning! Not found and IGNORED: " + ' '.join(not_found_countries))
+        logger.warning("Warning! Not found and IGNORED: " + ' '.join(not_found_countries))
 
 # %% Plot World map
 
@@ -101,7 +104,7 @@ df_data = get_decade_by_country()
 def plot_decade(df_decade, decade, borders=False, feature = None, dpi=300, figsize=(13,6.2)):
     plt.figure(figsize=figsize)
     ax = create_axes()
-    #setup_axes_labels(ax)
+    # setup_axes_labels(ax)
     if not feature is None:
         ax.add_feature(
             cf.NaturalEarthFeature(feature['category'], feature['name'], '50m', edgecolor=feature['edgecolor'], facecolor=feature['facecolor'])
@@ -111,7 +114,7 @@ def plot_decade(df_decade, decade, borders=False, feature = None, dpi=300, figsi
     sm._A = []
     plt.colorbar(sm, ax=ax, shrink=.62)
     setup_countries(ax, df_decade, cmap)
-    #mm = ax.pcolormesh(lon,lat,weights,vmin=-2, vmax=30, transform=ccrs.PlateCarree()) #,cmap=cmo.balance )
+    # mm = ax.pcolormesh(lon,lat,weights,vmin=-2, vmax=30, transform=ccrs.PlateCarree()) #,cmap=cmo.balance )
     if borders == True:
         ax.add_feature(cf.BORDERS)
     plt.title(str(decade))

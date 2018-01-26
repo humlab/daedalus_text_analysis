@@ -1,9 +1,12 @@
 
 from geopy.geocoders import GoogleV3# GeoNames, Nominatim, GoogleV3     # if explicit use of geopy
-from . geocode_loc_tags import assign_geocodes, load_swener_tags,get_country
+from . geocode_loc_tags import assign_geocodes, load_swener_tags, get_country
 import numpy as np
 import pandas as pd
 from common import FileUtility
+import logging
+
+logger = logging.getLogger(__name__)
 
 def setup_unique_locations_dataframe(df_tags, geocoded_filename):
 
@@ -28,13 +31,13 @@ def assign_country_to_locations(df):
 def process_geocoding(df_tags, geolocator, geocoded_filename, geocoded_output_filename):
     df_locations = setup_unique_locations_dataframe(df_tags, geocoded_filename)
     pending_count = len(df_locations[(df_locations['processed'] != 1.0)])
-    print("Pending count: {0}".format(pending_count))
+    logger.info("Pending count: {0}".format(pending_count))
     if pending_count > 0:
         while True:
             hits = assign_geocodes(geolocator, df_locations)
             if hits == 0: break
             FileUtility.save_to_excel(df_locations, geocoded_output_filename)
-    print("Done!")
+    logger.info("Done!")
     return df_locations
 
 def apply_geocodes(df_loc_tags, df_locations):

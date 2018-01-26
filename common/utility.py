@@ -8,6 +8,9 @@ import shutil
 import zipfile
 import glob
 
+import logging
+logger = logging.getLogger(__name__)
+
 __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 
 sys.path.append(__cwd__)
@@ -50,23 +53,10 @@ class FileUtility:
 
     @staticmethod
     def save_excel(data, filename):
-        with pd.ExcelWriter(filename) as writer:
+        with pd.ExcelWriter(filename, engine='xlsxwriter') as writer:
             for (df, name) in data:
                 df.to_excel(writer, name)
             writer.save()
-
-    #@staticmethod
-    #def save_to_excel(df, filename, sheetname='Sheet1'):
-    #    print("Saving to {0}...".format(filename))
-    #    writer = pd.ExcelWriter(filename)
-    #    df.to_excel(writer, sheetname)
-    #    writer.save()
-
-    #@staticmethod
-    #def read_from_excel(filename, sheetname='Sheet1'):
-    #    with open(filename, 'rb') as f:
-    #        df = pd.read_excel(f, sheetname)
-    #    return df
 
     def data_path(self, filename):
         return os.path.join(self.directory, filename)
@@ -81,7 +71,7 @@ class FileUtility:
     @staticmethod
     def compress(path):
         if not os.path.exists(path):
-            print("ERROR: file not found (zip)")
+            logger.error("ERROR: file not found (zip)")
             return
         folder, filename = os.path.split(path)
         basename, _ = os.path.splitext(filename)

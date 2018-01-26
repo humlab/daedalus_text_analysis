@@ -6,9 +6,11 @@ import unittest
 import pandas as pd
 
 from gensim import corpora, models
-from topic_modelling import LdaMalletService, LdaModelExtraDataCompiler
+from topic_modelling import LdaMalletService, NotebookDataGenerator
 from utility import generate_temp_filename
-from common.utility import revdict, extend
+import logging
+
+logger = logging.getLogger(__name__)
 
 mallet_path = 'C:\\Usr\\mallet-2.0.8'
 
@@ -100,9 +102,9 @@ class LdaMalletTestCase(unittest.TestCase):
         mallet_model = LdaMalletService(corpus=corpus, id2word=dictionary, default_mallet_path=mallet_path, **lda_options)
         gensim_model = models.wrappers.ldamallet.malletmodel2ldamodel(mallet_model)
 
-        extra = LdaModelExtraDataCompiler()
+        extra = NotebookDataGenerator()
 
-        document_topics = extra.get_document_topics(gensim_model, corpus, corpus_documents, num_words=200, minimum_probability=0)
+        document_topics = extra._compile_document_topics(gensim_model, corpus, corpus_documents, minimum_probability=0)
 
         self.assertIsNotNone(document_topics)
         self.assertEqual(20, len(document_topics))
@@ -112,23 +114,13 @@ class LdaMalletTestCase(unittest.TestCase):
         self.assertAlmostEqual(1.0, document_topics.groupby('document').sum()['weight'].max())
         self.assertAlmostEqual(1.0, document_topics.groupby('document').sum()['weight'].mean())
 
-    def test_compute(self):
-
-        source = './test__data/1987_article_xml.zip'
-mallet_path = 
-        options = [
-            { 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": 50, "iterations": 2000 }, 'engine_path': 'C:\\Usr\\mallet-2.0.8'  }
-        ]
-
-        compute(source=source, options=options)
-        
     #     df_topic_token_weights = ModelComputeHelper.get_topic_token_weight_toplist(lda, num_words=200)
     #     df_topic_overview = ModelComputeHelper.get_topic_overview(df_topic_token_weights)
     #     df_yearly_mean_topic_weights = ModelComputeHelper.get_yearly_mean_topic_weight(df_doc_topic_weights, df_topic_overview)
     #     df_dictionary = pd.DataFrame({ 'token': revdict(dictionary.token2id), 'dfs': dictionary.dfs }).reset_index().set_index('index')[['token', 'dfs']]
 
     # def xtest_xxx(self):
-        
+
     #     df_doc_topic_weights = ModelComputeHelper.get_document_topics(lda, mm, df_corpus_document, num_words=200, minimum_probability=0)
     #     df_topic_token_weights = ModelComputeHelper.get_topic_token_weight_toplist(lda, num_words=200)
     #     df_topic_overview = ModelComputeHelper.get_topic_overview(df_topic_token_weights)

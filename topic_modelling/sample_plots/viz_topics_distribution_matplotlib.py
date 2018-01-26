@@ -16,7 +16,6 @@ def plot_yearly_distributions(df):
         topic_weights = [
             tuple(x) for x in df_year[['topic_id', 'weight']].values if x[1] > 0.10
         ]
-        print(topic_weights)
         plt.title("Topic distribution")
         plt.ylabel("P(topic)")
         plt.ylim(0.0, 1.0)

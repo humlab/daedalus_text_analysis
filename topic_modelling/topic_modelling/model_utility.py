@@ -5,7 +5,6 @@ import pandas as pd
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import gensim
-from gensim.models.wrappers import ldamallet
 from gensim.models.ldamodel import LdaModel
 import glob
 import logging
@@ -14,24 +13,27 @@ __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 
 sys.path.append(__cwd__)
 
-logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s",  level=logging.INFO)
+logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
+
 class ModelUtility():
 
     @staticmethod
     def create_basename(opt):
-        extremes = opt.get("filter_extreme_args", {})
+        prune_at = opt.get("prune_at", 2000000)
+        dfs_min = opt.get("dfs_min", 0)
+        dfs_max = opt.get("dfs_max", 0)
         lda_opts = opt.get("lda_options", {})
         return "{}{}{}{}{}{}{}{}{}".format(
             'topics_{}'.format(lda_opts.get("num_topics", 0)),
-            '_'.join(opt["pos_tags"].split('|')),
+            '_'.join(opt["postags"].split('|')),
             '_no_chunks' if opt.get("chunk_size", None) is None else 'bz_{}'.format(opt.get("chunk_size", 0)),
             '_iterations_{}'.format(lda_opts.get("iterations", 0)),
             '_lowercase' if opt.get("lowercase", False) else '',
-            '_keep_{}'.format(extremes.get('keep_n', 0)) if extremes is not None and extremes.get('keep_n', 0) > 0 else '',
-            '_no_below_dfs_{}'.format(extremes.get('no_below', 0)) if extremes is not None and extremes.get('no_below', 0) > 0 else '',
-            '_no_above_{}'.format(extremes.get('no_above', 0)) if extremes is not None and extremes.get('no_above', 0) > 0 else '',
+            '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
+            '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
+            '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
             '_{}'.format(opt.get('lda_engine', '').lower()))
-                
+
     # @staticmethod
     # def load_mallet_lda_model(data_folder, basename):
     #     filename = os.path.join(data_folder, basename, 'mallet_model_{}.gensim'.format(basename))
@@ -75,12 +77,14 @@ class ModelUtility():
     @staticmethod
     def store_document_index(data_folder, basename, documents):
         filename = os.path.join(data_folder, basename, 'document_index.csv')
-        pd.DataFrame(documents).to_csv(filename)
+        df = pd.DataFrame(documents).set_index('document_id')
+        df.to_csv(filename, sep='\t', header=True)
+        return df
 
     @staticmethod
     def load_document_index(data_folder, basename):
         filename = os.path.join(data_folder, basename, 'document_index.csv')
-        df = pd.read_csv(filename)
+        df = pd.read_csv(filename, sep='\t', header=0).set_index('document_id')
         return df
 
     @staticmethod
@@ -129,4 +133,3 @@ class ModelUtility():
     @staticmethod
     def get_model_names(source_folder):
         return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*')) ]
-

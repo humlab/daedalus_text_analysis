@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import io, os
+import io
+import os
 import requests
 from lxml import etree
 import zipfile
@@ -8,6 +9,9 @@ import urllib
 import json
 import pycurl
 from io import BytesIO
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SparvPoster_pycurl():
 
@@ -168,7 +172,7 @@ class ArchiveAnnotater:
                 xml_name = basename + '.xml'
 
                 if os.path.isfile(os.path.join(folder, xml_name)):
-                    print('WARNING: File {} exists, skipping...'.format(xml_name))
+                    logger.warning('WARNING: File {} exists, skipping...'.format(xml_name))
                     continue
 
                 with zf.open(article_name) as tf:
@@ -177,7 +181,7 @@ class ArchiveAnnotater:
                 xml = self.annotate_content(content, download_name)
 
                 if xml is None:
-                    print('FAILED: {}...'.format(article_name))
+                    logger.error('FAILED: {}...'.format(article_name))
                     continue
 
                 result_zf.writestr(xml_name, xml)
@@ -190,6 +194,6 @@ class ArchiveAnnotater:
                     os.remove(download_name)
 
                 counter += 1
-                print('DONE: {} ({}) {}...'.format(counter, file_count, article_name))
+                logger.info('DONE: {} ({}) {}...'.format(counter, file_count, article_name))
                 # if counter == 1:
                 #    break
