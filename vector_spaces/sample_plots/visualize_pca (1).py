@@ -16,7 +16,7 @@ def scatter_plot_words(vocab_coordinates, words):
     # create a scatter plot of the projection of dimensions PC1 and PC2
     word_indexes = [ model.wv.vocab[word].index for word in words ]
     coordinates = [ vocab_coordinates[j].tolist() for j in word_indexes ]
-    xs=[x[0] for x in coordinates]
+    xs = [x[0] for x in coordinates]
     ys = [x[1] for x in coordinates]
     pyplot.scatter(xs, ys)
     # words = list(model.wv.vocab)[0:100]
@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
     model = load_model(filename)
 
-    print('Top 10 words       : ', model.wv.index2word[0:10])
-    print('Size of vocabulary : ', len(model.wv.vocab))
+    logger.info('Top 10 words       : ', model.wv.index2word[0:10])
+    logger.info('Size of vocabulary : ', len(model.wv.vocab))
 
     words = ['polhem', 'man', 'kvinna']
 

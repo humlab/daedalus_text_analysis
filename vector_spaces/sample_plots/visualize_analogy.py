@@ -2,6 +2,8 @@
 from matplotlib import pyplot
 import pandas as pd
 from scipy import spatial
+import logging
+logger = logging.getLogger(__name__)
 
 class SimilarWordGenerater():
 
@@ -11,7 +13,7 @@ class SimilarWordGenerater():
     def flatten(self, items):
         return [ item for sublist in items for item in sublist ]
 
-    def get_similar(self, words, iter=1, topn=3, similar_threshold = 0.0):
+    def get_similar(self, words, iter=1, topn=3, similar_threshold=0.0):
         return self.flatten([ [ y[0] for y in self.word_vectors.most_similar(x, topn=topn) if y[1] >= similar_threshold ] for x in words ])
 
     #def generate0(self, words, iter=1, topn=3, similar_threshold = 0.0):
@@ -20,9 +22,9 @@ class SimilarWordGenerater():
     #    similar_words = list(set(self.get_similar(words, iter, topn, similar_threshold)) - set(words))
     #    return list(set(words + self.generate0(similar_words, iter-1, topn)))
 
-    def generate(self, words, iter=1, topn=3, cumulated_words = [], similar_threshold = 0.5):
-        #print('{}: {}'.format(iter, cumulated_words))
-        if isinstance(words,str): words = [ words ]
+    def generate(self, words, iter=1, topn=3, cumulated_words=[], similar_threshold=0.5):
+        # logger.info('{}: {}'.format(iter, cumulated_words))
+        if isinstance(words, str): words = [ words ]
         if iter < 0 or len(words) == 0: return cumulated_words
         cumulated_words = list(set(cumulated_words + words))
         similar_words = list(set(self.get_similar(words, iter, topn, similar_threshold)) - set(cumulated_words))
@@ -99,25 +101,14 @@ def generate_plot(words, x_word, y_word, iter=5, topn=3, similar_threshold= 0.5)
     plot_df(df,'<--- {} --->'.format(x_word), '<--- {} --->'.format(y_word))
 
 
-# %%
-#filename = '../data/output/w2v_model_skip_gram_win_5_dim_50_iter_20_mc_5_complete_not_segmented.dat'
-#filename = '../data/output/w2v_model_skip_gram_win_10_dim_100_iter_20_mc_5_segmented_1980-1014.dat'
-filename = '../data/output/w2v_model_skip_gram_win_5_dim_150_iter_20_mc_5_complete_not_segmented.dat'
-
-word_vectors = load_model_vector(filename)
-
-# %%
-
 word_list = SimilarWordGenerater(word_vectors).generate(['jordbruk'], 5, topn=3)
 df = word_pair_list_similarity(word_vectors, 'person', 'maskin', word_list)
-plot_df(df,'<--- Person --->', '<--- Maskin --->')
-
+plot_df(df, '<--- Person --->', '<--- Maskin --->')
 
 # %%
 
 df = word_pair_toplist_similarity(word_vectors, 'konsument', 'producent')
-plot_df(df,'Konsument', 'Producent')
-
+plot_df(df, 'Konsument', 'Producent')
 
 # %%
 

@@ -1,2 +1,2 @@
 
-from . sparv_annotater import ArchiveAnnotater, SparvCorpusReader, SparvTextCorpus
+from . sparv_annotater import AnnotateService, ArchiveAnnotater, SparvCorpusReader, SparvTextCorpus

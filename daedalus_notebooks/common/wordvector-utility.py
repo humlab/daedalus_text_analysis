@@ -7,8 +7,11 @@ from scipy import spatial
 import glob
 import re
 
+import logging
+logger = logging.getLogger(__name__)
+
 class WordVectorUtility:
-    
+
     @staticmethod
     def get_model_names(source_folder):
         return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*.dat')) ]
@@ -19,7 +22,7 @@ class WordVectorUtility:
         word_vectors = model.wv
         del model
         return word_vectors
-    
+
     @staticmethod
     def create_X_m_space_matrix(word_vectors, words):
         index2word = [ x for x in words if x in word_vectors.vocab ]
@@ -38,7 +41,7 @@ class WordVectorUtility:
             'positives': [ x for x in positives if x not in negatives ],
             'negatives': [ x for x in negatives if x not in positives ]
         }
-    
+
     @staticmethod
     def compute_most_similar_expression(word_vectors, wexpr):
         try:
@@ -46,9 +49,9 @@ class WordVectorUtility:
             result = word_vectors.most_similar(positive=options['positives'], negative=options['negatives'])
             return result, options or dict(positives=[], negatives=[])
         except Exception as ex:
-            print(str(ex))
+            logger.error(str(ex))
             return None, None
-        
+
     @staticmethod
     def compute_similarity_to_anthologies(word_vectors, scale_x_pair, scale_y_pair, word_list):
 
@@ -71,7 +74,7 @@ class WordVectorUtility:
         df = pd.DataFrame({ 'word': word_list, 'x': word_x_similarity, 'y': word_y_similarity })
 
         return df
-    
+
     @staticmethod
     def compute_similarity_to_words(word_vectors, x, y, word_list):
 
@@ -80,11 +83,11 @@ class WordVectorUtility:
 
         if type(x) == 'str' and type(y) == 'str':
             return WordVectorUtility.compute_similarity_to_single_words(word_vectors, x, y, word_list)
-        print('Error: x and y must be wither two strings or two pair of strings')
+        logger.error('Error: x and y must be wither two strings or two pair of strings')
         return None
-    
+
     @staticmethod
     def seed_word_toplist(word_vectors, seed_word, topn=100):
-     return [ seed_word ] + [ z[0] for z in word_vectors.most_similar_cosmul(seed_word, topn=topn) ]
+        return [ seed_word ] + [ z[0] for z in word_vectors.most_similar_cosmul(seed_word, topn=topn) ]
 
 

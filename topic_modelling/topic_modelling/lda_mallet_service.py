@@ -13,13 +13,13 @@ def filter_fn_args(f, args):
 
 class LdaMalletService(models.wrappers.LdaMallet):
 
-    def __init__(self, corpus, id2word, default_mallet_path, **args):
+    def __init__(self, corpus, id2word, default_mallet_home, **args):
 
         args = filter_fn_args(super(LdaMalletService, self).__init__, args)
 
         args.update({ "workers": 4, "optimize_interval": 10 })
 
-        mallet_home = os.environ.get('MALLET_HOME', default_mallet_path)
+        mallet_home = os.environ.get('MALLET_HOME', default_mallet_home)
 
         if not mallet_home:
             raise Exception("Environment variable MALLET_HOME not set. Aborting")
@@ -50,4 +50,3 @@ class LdaMalletService(models.wrappers.LdaMallet):
         check_output(args=cmd, shell=True)
         self.word_topics = self.load_word_topics()
         self.wordtopics = self.word_topics
-

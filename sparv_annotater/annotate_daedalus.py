@@ -1,5 +1,5 @@
 
-from . import ArchiveAnnotater
+from sparv_annotater import ArchiveAnnotater
 
 def main():
     settings = {
@@ -21,9 +21,9 @@ def main():
         },
         "extra_tags": [],
         "positional_attributes": {
-            "lexical_attributes": ["pos", "msd", "lemma", "lex", "sense"],
+            "lexical_attributes": ["pos", "msd", "lemma"],  # , "lex", "sense"],
             "compound_attributes": [],
-            "dependency_attributes": ["ref", "dephead", "deprel"],
+            "dependency_attributes": [ ],  # "ref", "dephead", "deprel"],
             "sentiment": []
         },
         "named_entity_recognition": [],
@@ -33,7 +33,7 @@ def main():
     }
 
     service = ArchiveAnnotater(settings)
-    source_name = './data/segmented-yearly-volumes_articles.zip'
+    source_name = '../data/segmented-yearly-volumes_articles.zip'
     service.annotate_files_in_archive(source_name)
 
 main()

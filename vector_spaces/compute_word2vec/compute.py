@@ -65,7 +65,6 @@ class ZipFileSentenizer(object):
         for zip_path in glob.glob(self.pattern):
             with zipfile.ZipFile(zip_path) as zip_file:
                 filenames = [ name for name in zip_file.namelist() if any(map(name.endswith, self.extensions)) ]
-                print(filenames)
                 for filename in filenames:
                     with zip_file.open(filename) as text_file:
                         content = text_file.read().decode('utf8').replace('-\r\n','').replace('-\n','')
@@ -73,7 +72,7 @@ class ZipFileSentenizer(object):
                         # fix hyphenations i.e. hypens at end om libe
                         for sentence in sent_tokenize(content, language='swedish'):
                             tokens = word_tokenize(sentence)
-                            if not self.cleanser is None:
+                            if self.cleanser is not None:
                                 tokens = self.cleanser.cleanse(tokens)
                             if len(tokens) > 0:
                                 yield tokens

@@ -6,6 +6,9 @@ import pandas as pd
 import shutil
 import zipfile
 
+import logging
+logger = logging.getLogger(__name__)
+
 __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 
 sys.path.append(__cwd__)
@@ -51,7 +54,7 @@ class Utility:
     @staticmethod
     def zip(path):
         if not os.path.exists(path):
-            print("ERROR: file not found (zip)")
+            logger.error("ERROR: file not found (zip)")
             return
         folder, filename = os.path.split(path)
         basename, _ = os.path.splitext(filename)

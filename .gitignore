@@ -2,6 +2,8 @@ data/
 vsm-data/
 tm-data/
 temp/
+test_data/
+*.zip
 daedalus_notebooks/data/
 daedalus_notebooks/temp/
 .vscode/

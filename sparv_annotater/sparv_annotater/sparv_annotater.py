@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import io, os
+import io
+import os
 import requests
 from lxml import etree
 import zipfile
@@ -8,6 +9,9 @@ import urllib
 import json
 import pycurl
 from io import BytesIO
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SparvPoster_pycurl():
 
@@ -33,10 +37,12 @@ class SparvPoster_pycurl():
         body = buffer.getvalue()
         return body.decode('utf-8')
 
+import re
+hyphen_regexp = re.compile(r'\b(\w+)-\s*\r?\n\s*(\w+)\b', re.UNICODE)
 
 class AnnotateService:
 
-    def __init__(self, settings=None):
+    def __init__(self, settings=None, transforms=[]):
 
         self.url = 'https://ws.spraakbanken.gu.se/ws/sparv/v2//upload?'
         self.headers = {
@@ -83,21 +89,39 @@ class AnnotateService:
             }
         }
 
+        self.transforms = transforms or []
+        self.transforms.append(self.remove_hyphens)
+        self.transforms.append(html.escape)
+
+    def remove_hyphens(self, text):
+        result = re.sub(hyphen_regexp, r"\1\2\n", text)
+        return result
+
+    def apply_transforms(self, text):
+        for ft in self.transforms:
+            text = ft(text)
+        return text
+
     def annotate_text_file(self, source_filename, target_filename):
         with io.open(source_filename, 'r', encoding='utf8') as f:
             text = f.read()
         return self.annotate_text(text, target_filename)
 
     def annotate_text(self, text, target_filename):
-        data = html.escape(text)
+
+        data = self.apply_transforms(text)
         settings = urllib.parse.quote(json.dumps(self.settings).replace(" ", ""), safe='/{}[]:,')
         url = self.url + "settings=" + settings
+
         response_text = SparvPoster_pycurl().request(url, self.headers, None, data)
+
         if response_text is None:
             return None
+
         url = self.parse_response(response_text)
         if url == '':
             return None
+
         return self.download_file(url, target_filename)
 
     def parse_response(self, response_text):
@@ -148,7 +172,7 @@ class ArchiveAnnotater:
                 xml_name = basename + '.xml'
 
                 if os.path.isfile(os.path.join(folder, xml_name)):
-                    print('WARNING: File {} exists, skipping...'.format(xml_name))
+                    logger.warning('WARNING: File {} exists, skipping...'.format(xml_name))
                     continue
 
                 with zf.open(article_name) as tf:
@@ -157,7 +181,7 @@ class ArchiveAnnotater:
                 xml = self.annotate_content(content, download_name)
 
                 if xml is None:
-                    print('FAILED: {}...'.format(article_name))
+                    logger.error('FAILED: {}...'.format(article_name))
                     continue
 
                 result_zf.writestr(xml_name, xml)
@@ -170,7 +194,6 @@ class ArchiveAnnotater:
                     os.remove(download_name)
 
                 counter += 1
-                print('DONE: {} ({}) {}...'.format(counter, file_count, article_name))
+                logger.info('DONE: {} ({}) {}...'.format(counter, file_count, article_name))
                 # if counter == 1:
                 #    break
-

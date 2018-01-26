@@ -2,10 +2,13 @@
 
 import pycountry
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_swener_tags(filename):
 
-    df = pd.read_csv(filename, header=None, encoding='utf-8',sep='\t', names=['year', 'location', 'classifier', 'entity'])
+    df = pd.read_csv(filename, header=None, encoding='utf-8', sep='\t', names=['year', 'location', 'classifier', 'entity'])
 
     df_str_columns = df.select_dtypes(['object'])
     df[df_str_columns.columns] = df_str_columns.apply(lambda x: x.str.strip())
@@ -40,13 +43,13 @@ def get_country(x):
             try:
                 if 'singapore' in z.lower(): z = 'SG'
                 if 'hungary' in z.lower(): z = 'HU'
-                return pycountry.countries.lookup(aliases.get(z,z)) ##.name
+                return pycountry.countries.lookup(aliases.get(z, z))  ##.name
             except:
                 pass
-        print("unknown: " + str(x))
+        logger.warning("unknown: " + str(x))
         return None
     except:
-        print("failed: " + str(x))
+        logger.warning("failed: " + str(x))
 
 def assign_geocodes(geolocator, df_locations, count=25):
     ''' Main geocoding function '''
@@ -57,17 +60,16 @@ def assign_geocodes(geolocator, df_locations, count=25):
             continue
 
         df_locations.loc[index,'processed'] = 1.0
-        location = geolocator.geocode(index) # dfunique.loc[index,'entity'])
+        location = geolocator.geocode(index)  # dfunique.loc[index,'entity'])
 
-        if not location is None:
-            df_locations.loc[index,'latitude'] = location.latitude
-            df_locations.loc[index,'longitude'] = location.longitude
+        if location is not None:
+            df_locations.loc[index, 'latitude'] = location.latitude
+            df_locations.loc[index, 'longitude'] = location.longitude
             point = [ location.latitude, location.longitude ]
             reverseName = geolocator.reverse(point, exactly_one=True)
-            if not reverseName is None:
-                print("{0} ==> {1}".format(index, reverseName[0]))
-                df_locations.loc[index,'reversename'] = reverseName[0]
-                # df_locations.loc[index,'country'] = get_country(reverseName[0])
+            if reverseName is not None:
+                logger.info("{0} ==> {1}".format(index, reverseName[0]))
+                df_locations.loc[index, 'reversename'] = reverseName[0]
 
         if i > count:
             break

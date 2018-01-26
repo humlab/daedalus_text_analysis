@@ -5,21 +5,27 @@
 
 <xsl:strip-space elements="*" />
 
-<xsl:param name="pos_tags"/>
-<xsl:variable name="target" select="@lemma"/>
+<xsl:param name="postags"/>
+<xsl:param name="deliminator"/>
+<xsl:param name="target"/>
+
+<xsl:variable name="ignores" select="'|MAD|MID|PAD|'"/>
 
 <xsl:template match="w">
+
   <xsl:variable name="lemma" select="@lemma"/>
-  <!--xsl:variable name="token" select="translate($lemma,'|','')"/-->
-  <xsl:variable name="token" select="substring-before(substring-after($lemma,'|'),'|')"/>
-  <xsl:variable name="content" select="text()"/>
-  <xsl:if test="contains($pos_tags,concat('|', @pos, '|'))">
+  <xsl:variable name="content_token" select="text()"/>
+  <xsl:variable name="lemma_token" select="substring-before(substring-after($lemma,'|'),'|')"/>
+
+  <xsl:if test="$postags='' or contains($postags,concat('|', @pos, '|'))">
     <xsl:choose>
-        <xsl:when test="$token != ''"><xsl:value-of select="$token"/></xsl:when>
-        <xsl:otherwise>{<xsl:value-of select="$content"/>}</xsl:otherwise>
+        <xsl:when test="contains($ignores,concat('|', @pos, '|'))"></xsl:when>
+        <xsl:when test="$target='lemma' and $lemma_token!=''"><xsl:value-of select="$lemma_token"/></xsl:when>
+        <xsl:otherwise><xsl:value-of select="$content_token"/></xsl:otherwise>
     </xsl:choose>
-    <xsl:text>&#160;</xsl:text>
+    <xsl:value-of select="$deliminator" disable-output-escaping="yes"/>
   </xsl:if>
+
 </xsl:template>
 
 </xsl:stylesheet>
