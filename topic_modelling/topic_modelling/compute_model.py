@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+
 import logging
 import os
 import numpy as np
@@ -8,6 +11,8 @@ from gensim import models, matutils
 from common.utility import FileUtility
 from .model_utility import ModelUtility
 from .lda_mallet_service import LdaMalletService
+
+logger = logging.getLogger(__name__)
 
 class ModelComputeHelper():
 
