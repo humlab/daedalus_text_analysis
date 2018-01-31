@@ -76,6 +76,9 @@ class BaseWidgetUtility():
         args = extend(dict(min=0, max=0, step=1, value=0, disabled=False, continuous_update=False), args)
         return widgets.IntSlider(description=description, **args)
 
+    def create_int_range_slider(self, **args):
+        return widgets.IntRangeSlider(**args)
+    
     def create_float_slider(self, description, **args):
         args = extend(dict(min=0.0, max=0.0, step=0.1, value=0.0, disabled=False, continuous_update=False), args)
         return widgets.FloatSlider(description=description, **args)

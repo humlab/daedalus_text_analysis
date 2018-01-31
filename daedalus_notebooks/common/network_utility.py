@@ -3,7 +3,10 @@ import community # pip3 install python-louvain packages
 from networkx.algorithms import bipartite
 import networkx as nx
 import bokeh.models as bm
+import bokeh.palettes
+
 from itertools import product
+
 if 'extend' not in globals():
     extend = lambda a,b: a.update(b) or a
     
@@ -23,15 +26,6 @@ DISTANCE_METRICS = {
     # 'Minkowski': 'minkowski',
     'Normalized Euclidean': 'seuclidean',
     'Squared Euclidean': 'sqeuclidean'
-}
-
-
-layout_algorithms = {
-    'Fruchterman-Reingold': lambda x,**args: nx.spring_layout(x,**args),
-    'Eigenvectors of Laplacian':  lambda x,**args: nx.spectral_layout(x,**args),
-    'Circular': lambda x,**args: nx.circular_layout(x,**args),
-    'Shell': lambda x,**args: nx.shell_layout(x,**args),
-    'Kamada-Kawai': lambda x,**args: nx.kamada_kawai_layout(x,**args)
 }
 
 class NetworkMetricHelper:
@@ -65,7 +59,7 @@ class NetworkMetricHelper:
         max_value = max(value_vector)
         alphas = list(map(lambda h: 0.1 + 0.6 * (h / max_value), value_vector))
         return alphas
-    
+
 class NetworkUtility:
     
     @staticmethod
@@ -133,22 +127,6 @@ class NetworkUtility:
         nodes = set(n for n,d in network.nodes(data=True) if d['bipartite']==bipartite) 
         others = set(network) - nodes
         return list(nodes), list(others)
-
-    @staticmethod
-    def layout_args(layout_algorithm, network, scale):
-        args = {}
-        if layout_algorithm == 'Shell':
-            year_nodes, topic_nodes = get_bipartite_node_set(network, bipartite=0)   
-            args = dict(nlist=[year_nodes, topic_nodes])
-
-        if layout_algorithm == 'Fruchterman-Reingold':
-            k = scale #/ math.sqrt(network.number_of_nodes())
-            args = dict(dim=2, k=k, iterations=20, weight='weight', scale=0.5)
-
-        if layout_algorithm == 'Kamada-Kawai':
-            args = dict(dim=2, weight='weight', scale=1.0)
-
-        return args    
     
     @staticmethod
     def create_network_from_correlation_matrix(matrix, threshold=0.0):
@@ -181,3 +159,4 @@ class NetworkUtility:
         #    .sort_values(by='weight', ascending=False)
 
     #     #pos = nx.graphviz_layout(G, prog="twopi") # twopi, neato, circo
+
