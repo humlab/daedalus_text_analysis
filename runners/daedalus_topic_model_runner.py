@@ -79,6 +79,7 @@ if __name__ == "__main__":
 
         options_list = [
 
+            # { 'source': source, 'postags': '', 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": n_topics, "iterations": 2000 }, 'engine_path': mallet_path  },
             { 'source': source, 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": n_topics, "iterations": 2000 }, 'engine_path': mallet_path  },
 
             # { 'source': source, 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": n_topics, "iterations": 2000, 'chunksize': 100000, 'passes': 2  } },
@@ -95,17 +96,17 @@ if __name__ == "__main__":
             basename = topic_modelling.ModelUtility.create_basename(opt)
             directory = os.path.join(data_folder, basename)
 
-            FileUtility(directory).create(True)
+            #FileUtility(directory).create(True)
 
             runner = DaedalusTopicModelRunner()
 
-            corpus = runner.create_corpus(opt)
+            #corpus = runner.create_corpus(opt)
 
-            if False:
-                runner.save_documents(corpus, target_folder=directory)
+            #if False:
+            #    runner.save_documents(corpus, target_folder=directory)
 
-            model = runner.compute(corpus, opt)
-
+            #model = runner.compute(corpus, opt)
+            model = None
             topic_modelling.generate_notebook_friendly_data(model, data_folder, basename)
 
             # topic_modelling.convert_to_pyLDAvis(data_folder, basename)

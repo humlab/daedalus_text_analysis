@@ -14,6 +14,7 @@ __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 sys.path.append(__cwd__)
 
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ModelUtility():
 

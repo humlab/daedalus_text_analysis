@@ -7,7 +7,8 @@ import pandas as pd
 
 from gensim import corpora, models
 from topic_modelling import LdaMalletService, NotebookDataGenerator
-from utility import generate_temp_filename
+from utility import generate_temp_filename, join_test_data_path
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -94,6 +95,11 @@ class LdaMalletTestCase(unittest.TestCase):
             'dfs': list(dictionary.dfs.values())
         }).set_index('token_id')[['token', 'dfs']]
         self.assertDictEqual(dictionary.id2token, df_dictionary.token.to_dict())
+
+    def test_read_alpha(self):
+        filename = join_test_data_path('topickeys.txt')
+        df = pd.read_csv(filename, sep='\t', header=None, names=['topic_id', 'alpha', 'tokens'], decimal=b',')
+        self.assertEqual(100, len(df))
 
     def test_doc_topic_weights(self):
 

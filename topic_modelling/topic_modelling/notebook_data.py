@@ -68,32 +68,42 @@ class NotebookDataGenerator():
 
         df = topic_token_weights.groupby('topic_id')\
             .apply(lambda x: sorted(list(zip(x["token"], x["weight"])), key=lambda z: z[1], reverse=True))\
-            .apply(lambda x: ' '.join([z[0] for z in x][:n_words]))
+            .apply(lambda x: ' '.join([z[0] for z in x][:n_words])).reset_index()
+        df['alpha'] = df.topic_id.apply(lambda topic_id: alpha[topic_id])
+        df.columns = ['topic_id', 'tokens', 'alpha']
 
-        df['alpha'] = df.reset_index().topic_id.apply(lambda topic_id: alpha[topic_id])
-
-        return df
+        return df.set_index('topic_id')
 
     def generate(self, lda, data_folder, basename):
 
         if lda is None:
             lda = ModelUtility.load_gensim_lda_model(data_folder, basename)
 
+        topic_keys = self._read_topic_keys(data_folder, basename)
         document_index = ModelUtility.load_document_index(data_folder, basename)
         mm = ModelUtility.load_corpus(data_folder, basename)
 
-        data = self._compile(lda, mm, document_index)
+        data = self._compile(lda, mm, document_index, topic_keys)
 
         self._save(data, data_folder, basename)
 
-    def _compile(self, lda, mm, document_index):
+    def _read_topic_keys(self, data_folder, basename):
+        filename = os.path.join(data_folder, basename, 'topickeys.txt')
+        if os.path.isfile(filename):
+            df = pd.read_csv(filename, sep='\t', header=None, names=['topic_id', 'alpha', 'tokens'], decimal=b',')
+            return df
+        return None
+
+    def _compile(self, lda, mm, document_index, topic_keys):
         '''
         Prepare various data frames to be saved as sheets in an Excel file...
         '''
         dictionary = self._compile_dictionary(lda)
         doc_topic_weights = self._compile_document_topics(lda, mm, document_index, minimum_probability=0)
         topic_token_weights = self._compile_topic_token_weights(lda, dictionary, num_words=200)
-        topic_overview = self._compile_topic_token_overview(topic_token_weights, lda.alpha)
+
+        alpha = lda.alpha if topic_keys is None else topic_keys.alpha
+        topic_overview = self._compile_topic_token_overview(topic_token_weights, alpha)
 
         sheets = [
             (doc_topic_weights, 'doc_topic_weights'),
@@ -102,6 +112,8 @@ class NotebookDataGenerator():
             (document_index, 'documents'),
             (dictionary, 'dictionary')
         ]
+        if topic_keys is not None:
+            sheets.append((topic_keys, 'topickeys'))
 
         return sheets
 
