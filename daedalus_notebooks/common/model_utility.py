@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import gensim
 from gensim.models import Word2Vec, LdaModel
 from sklearn.feature_extraction import DictVectorizer
 import pandas as pd
@@ -128,7 +129,7 @@ class ModelUtility:
         return corpus_documents
        
     @staticmethod
-    def compute_topic_terms_vector_space(lda, n_words=100):
+    def compute_topic_terms_vector_space_deprecated(lda, n_words=100):
         '''
         Computes a vector space based on top n_words words for each topics.
         Since the subset of words differs, and their positions differs between topics
@@ -148,24 +149,17 @@ class ModelUtility:
         return X, v.get_feature_names()
 
     @staticmethod
-    def compute_topic_terms_vector_space2(topic_token_weight, n_words=100):
+    def compute_and_align_vector_space(feature_data):
         '''
-        Variant that uses compiled topic token weights
+        feature_data is an unaligned list of dicts [ { t1: v, ..., tn: v }, ..., { t1': v1', ..., tn': vn' } ]
+        
+         DictVectorizer to align the terms so that each position in resulting vector are the same token,
+         and create a sparse result matrix
         '''
-        
-        ''' topic_id  token_id       token        weight '''
-        
-        n_topics = topic_token_weight.topic_id.max() + 1
-        ''' Create a term-weight dictionary for each topic '''
-        rows = (
-            { x[0]: x[1] for x in lda.show_topic(i, n_words) } for i in topic_token_weight.loc
-        )
-        ''' Use DictVectorizer to align the terms so that each position in resulting vector are the same word '''
         v = DictVectorizer()
-        X = v.fit_transform(rows)
+        X = v.fit_transform(feature_data)
         return X, v.get_feature_names()
 
-    
     @staticmethod
     def compute_topic_proportions(document_topic_weights, doc_length_series):
 
@@ -203,7 +197,28 @@ class ModelUtility:
         topic_proportion = topic_frequency / topic_frequency.sum()
 
         return topic_proportion
+    
+    @staticmethod
+    def load_dictionary(data_folder, basename):
+        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+        dictionary = gensim.corpora.Dictionary.load(filename)
+        return dictionary
 
+    @staticmethod
+    def store_dictionary(data_folder, basename, dictionary):
+        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+        dictionary.save(filename)
+
+    @staticmethod
+    def store_corpus(data_folder, basename, corpus):
+        filename = os.path.join(data_folder, basename, 'corpus.mm')
+        gensim.corpora.MmCorpus.serialize(filename, corpus)
+
+    @staticmethod
+    def load_corpus(data_folder, basename):
+        filename = os.path.join(data_folder, basename, 'corpus.mm')
+        corpus = gensim.corpora.MmCorpus(filename)
+        return corpus
 '''
 Helpers (temporary) for adding alpha to token index
 '''

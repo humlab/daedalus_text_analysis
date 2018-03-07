@@ -25,7 +25,9 @@ DISTANCE_METRICS = {
     # 'Mahalanobis': 'mahalanobis',
     # 'Minkowski': 'minkowski',
     'Normalized Euclidean': 'seuclidean',
-    'Squared Euclidean': 'sqeuclidean'
+    'Squared Euclidean': 'sqeuclidean',
+    'Kullback-Leibler': 'kullback–leibler',
+    'Kullback-Leibler (SciPy)': 'scipy.stats.entropy'
 }
 
 class NetworkMetricHelper:
@@ -127,36 +129,39 @@ class NetworkUtility:
         nodes = set(n for n,d in network.nodes(data=True) if d['bipartite']==bipartite) 
         others = set(network) - nodes
         return list(nodes), list(others)
-    
-    @staticmethod
-    def create_network_from_correlation_matrix(matrix, threshold=0.0):
 
+    @staticmethod
+    def create_network_from_xyw_list(values, threshold=0.0):
         G = nx.Graph()
-        #G.add_nodes_from(range(0, max(x_dim,y_dim)))
-        G.add_weighted_edges_from(NetworkUtility.matrix_weight_iterator(matrix, threshold))
+        G.add_weighted_edges_from(values)
         return G
     
-    @staticmethod
-    def matrix_weight_iterator(cm, threshold=0.0):
-        '''
-        Iterates sparse matrix and reverses distance metric in range 0 to -1 i.e.
-            weigh = 1.0 - distance
-        A high distance value should be a low weigh in the graph.
-        The matrix i assumed to be symmetric, and only one edge is returned per node pair
-        '''
-        x_dim, y_dim = cm.shape
-        return ((i, j, 1.0 - cm[i,j])
-                for i, j in product(range(0,x_dim), range(0,y_dim))
-                    if i < j and (1.0 - cm[i,j]) > threshold)
-    
-    @staticmethod
-    def df_stack_correlation_matrix(cm, threshold=0.0, n_top=100):
-        items = NetworkUtility.matrix_weight_iterator(cm, threshold)
-        return sorted(items, key=lambda x: x[2])[:n_top]
-    
-        #ns, ms, ws = list(zip(*matrix_weight_iterator(cm, threshold)))
-        #return pd.DataFrame(dict(n=ns,m=ms,weight=ws))\
-        #    .sort_values(by='weight', ascending=False)
+    #@staticmethod
+    #def create_network_from_correlation_matrix(matrix, threshold=0.0):
 
-    #     #pos = nx.graphviz_layout(G, prog="twopi") # twopi, neato, circo
+    #    G = nx.Graph()
+    #    #G.add_nodes_from(range(0, max(x_dim,y_dim)))
+    #    values = VectorSpaceHelper.symmetric_lower_left_iterator(matrix, threshold)
+    #    G.add_weighted_edges_from(values)
+    #    return G
+    
+    #@staticmethod
+    #def matrix_weight_iterator(matrix, threshold=0.0):
+    #    '''
+    #    Iterates sparse matrix and reverses distance metric in range 0 to -1 i.e.
+    #        weigh = 1.0 - distance
+    #    A high distance value should be a low weight in the graph.
+    #    The matrix i assumed to be symmetric, and only one edge is returned per node pair
+    #    '''
+    #    x_dim, y_dim = matrix.shape
+    #    return ((i, j, 1.0 - matrix[i,j])
+    #            for i, j in product(range(0,x_dim), range(0,y_dim))
+    #                if i < j and (1.0 - matrix[i,j]) >= threshold)
+    
+    #@staticmethod
+    #def df_stack_correlation_matrix(cm, threshold=0.0, n_top=100):
+    #    items = NetworkUtility.matrix_weight_iterator(cm, threshold)
+    #    return sorted(items, key=lambda x: x[2])[:n_top]
+    
+# pos = nx.graphviz_layout(G, prog="twopi") # twopi, neato, circo
 

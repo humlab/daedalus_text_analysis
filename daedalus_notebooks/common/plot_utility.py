@@ -1,8 +1,15 @@
 import wordcloud
 import matplotlib.pyplot as plt
-network_utility = __import__('network-utility')
-widget_utility = __import__('widget-utility')
+from network_utility import NetworkMetricHelper, NetworkUtility
+from widgets_utility import WidgetUtility
+import networkx as nx
+import bokeh.palettes
+import bokeh.models as bm
+from bokeh.plotting import figure
 
+if 'extend' not in globals():
+    extend = lambda a,b: a.update(b) or a
+    
 class WordcloudUtility:
     
     def plot_wordcloud(df_data, token='token', weight='weight', **args):
@@ -73,10 +80,11 @@ class PlotNetworkUtility:
         weight_scale=5.0,
         normalize_weights=True,
         node_opts=None,
-        line_opts=None
+        line_opts=None,
+        element_id='nx_id3'
     ):
         if threshold > 0:
-            max_weight = max(nx.get_edge_attributes(network, 'weight').values())
+            max_weight = max(1.0, max(nx.get_edge_attributes(network, 'weight').values()))
             filter_edges = [(u, v) for u, v, d in network.edges(data=True) \
                             if d['weight'] >= (threshold * max_weight)]
             sub_network = network.edge_subgraph(filter_edges)
@@ -84,16 +92,14 @@ class PlotNetworkUtility:
             sub_network = network
 
         args = PlotNetworkUtility.layout_args(layout_algorithm, sub_network, scale)
-        print(args)
         layout = (PlotNetworkUtility.get_layout_algorithm(layout_algorithm))(sub_network, **args)
-        # layout = nx.spring_layout(sub_network)
-        lines_source = network_utility.NetworkUtility.get_edges_source(
+        lines_source = NetworkUtility.get_edges_source(
             sub_network, layout, scale=weight_scale, normalize=normalize_weights
         )
-        nodes_source = network_utility.NetworkUtility.create_nodes_data_source(sub_network, layout)
+        nodes_source = NetworkUtility.create_nodes_data_source(sub_network, layout)
 
-        nodes_community = network_utility.NetworkMetricHelper.compute_partition(sub_network)
-        community_colors = network_utility.NetworkMetricHelper.partition_colors(nodes_community, bokeh.palettes.Category20[20])
+        nodes_community = NetworkMetricHelper.compute_partition(sub_network)
+        community_colors = NetworkMetricHelper.partition_colors(nodes_community, bokeh.palettes.Category20[20])
 
         nodes_source.add(nodes_community, 'community')
         nodes_source.add(community_colors, 'community_color')
@@ -116,7 +122,7 @@ class PlotNetworkUtility:
 
         p.add_tools(bm.HoverTool(renderers=[r_nodes], tooltips=None, callback=WidgetUtility.\
             glyph_hover_callback(nodes_source, 'node_id', text_ids=node_description.index, \
-                                 text=node_description, element_id='nx_id3'))
+                                 text=node_description, element_id=element_id))
         )
 
         text_opts = dict(x='x', y='y', text='name', level='overlay', text_align='center', text_baseline='middle')

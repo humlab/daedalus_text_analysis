@@ -4,8 +4,11 @@ from sklearn.preprocessing import Normalizer
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from scipy.spatial import distance
+import scipy.stats
+import numpy as np
 from scipy.cluster import hierarchy
 import inspect
+from itertools import product
 
 if 'extend' not in globals():
     extend = lambda a,b: a.update(b) or a
@@ -69,10 +72,23 @@ class VectorSpaceHelper:
         return X_n_space
     
     @staticmethod
+    def kullback_leibler_divergence(a, b):
+        '''
+        Kullback–Leibler divergence (also called relative entropy) 
+        '''
+        a = np.asarray(a, dtype=np.float)
+        b = np.asarray(b, dtype=np.float)
+        return np.sum(np.where(a != 0, a * np.log(a / b), 0))
+    
+    @staticmethod
     def compute_distance_matrix(X_n_space, metric='euclidean'):
         # https://se.mathworks.com/help/stats/pdist.html
+        metric = metric.lower()
+        if metric == 'kullback–leibler': metric = VectorSpaceHelper.kullback_leibler_divergence
+        if metric == 'scipy.stats.entropy': metric = scipy.stats.entropy
         X = X_n_space.toarray() if hasattr(X_n_space, 'toarray') else X_n_space
-        distances = distance.pdist(X, metric=metric.lower())
+        #X_n_space += 0.00001
+        distances = distance.pdist(X, metric=metric)
         distance_matrix = distance.squareform(distances)
         return distance_matrix
 
@@ -81,4 +97,16 @@ class VectorSpaceHelper:
         # Z = hierarchy.linkage(correlation_matrix, 'single')
         clustering = hierarchy.linkage(correlation_matrix)
         return clustering
+    
+    
+    @staticmethod
+    def lower_triangle_iterator(matrix, threshold=0.0):
+        '''
+        Iterates lower triangle (diagonal excluded) in a sparse matrix
+        The matrix i assumed to be symmetric
+        '''
+        x_dim, y_dim = matrix.shape
+        return ((i, j, matrix[i,j])
+                for i, j in product(range(0,x_dim), range(0,y_dim))
+                    if i < j and matrix[i,j] >= threshold)
     
