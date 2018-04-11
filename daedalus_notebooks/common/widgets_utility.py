@@ -114,7 +114,7 @@ class BaseWidgetUtility():
         return widgets.Textarea(**opts)
 
     def create_text_widget(self, element_id=None, default_value=''):
-        value = "<span class='{}'>{}</span>".format(element_id, default_value) if element_id is not None else ''
+        value = "<span class='{}' style='line-height: 20px;'>{}</span>".format(element_id, default_value) if element_id is not None else ''
         return widgets.HTML(value=value, placeholder='', description='')
 
     def create_prev_button(self, callback):

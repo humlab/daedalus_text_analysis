@@ -81,12 +81,19 @@ class PlotNetworkUtility:
         normalize_weights=True,
         node_opts=None,
         line_opts=None,
-        element_id='nx_id3'
+        element_id='nx_id3',
+        figsize=(900,900)
     ):
         if threshold > 0:
-            max_weight = max(1.0, max(nx.get_edge_attributes(network, 'weight').values()))
+            values = nx.get_edge_attributes(network, 'weight').values()
+            max_weight = max(1.0, max(values))
+            
+            print('Max weigth: {}'.format(max_weight))
+            print('Mean weigth: {}'.format(sum(values) / len(values)))
+            
             filter_edges = [(u, v) for u, v, d in network.edges(data=True) \
                             if d['weight'] >= (threshold * max_weight)]
+            
             sub_network = network.edge_subgraph(filter_edges)
         else:
             sub_network = network
@@ -115,7 +122,7 @@ class PlotNetworkUtility:
         node_opts = extend(DFLT_NODE_OPTS, node_opts or {})
         line_opts = extend(DFLT_EDGE_OPTS, line_opts or {})
 
-        p = figure(plot_width=900, plot_height=900, x_axis_type=None, y_axis_type=None) #, tools=tools)
+        p = figure(plot_width=figsize[0], plot_height=figsize[1], x_axis_type=None, y_axis_type=None)
         #node_size = 'size' if node_proportions is not None else 5
         r_lines = p.multi_line('xs', 'ys', line_width='weights', source=lines_source, **line_opts)
         r_nodes = p.circle('x', 'y', size=nodes_size, source=nodes_source, **node_opts)
@@ -127,7 +134,7 @@ class PlotNetworkUtility:
 
         text_opts = dict(x='x', y='y', text='name', level='overlay', text_align='center', text_baseline='middle')
 
-        r_nodes.glyph.fill_color = 'community_color'
+        r_nodes.glyph.fill_color = 'lightgreen' # 'community_color'
 
         p.add_layout(bm.LabelSet(source=nodes_source, text_color='black', **text_opts))
 
