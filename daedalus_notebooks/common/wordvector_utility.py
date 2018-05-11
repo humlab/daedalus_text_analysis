@@ -24,25 +24,41 @@ class WordVectorUtility:
         return word_vectors
 
     @staticmethod
-    def split_word_expression(wexpr):
+    def create_X_m_space_matrix(word_vectors, words):
+        index2word = [ x for x in words if x in word_vectors.vocab ]
+        dim = word_vectors.syn0.shape[1]
+        X_m_space = np.ndarray(shape=(len(index2word), dim), dtype='float64')
+        for i in range(0, len(index2word)):
+            X_m_space[i] = word_vectors[index2word[i]]
+        return X_m_space, index2word
+
+    @staticmethod
+    def split_word_expression(wexpr, word_vectors=None):
         wexpr = wexpr.lower().replace(' ', '')
         positives = re.findall(r"(?:^|(?<![-\w]))([\w]+)", wexpr)
         negatives = re.findall(r"-([\w]+)", wexpr)
+        if word_vectors is not None:
+            unknowns = [ x for x in positives + negatives if x not in word_vectors.vocab ]
+            if len(unknowns) > 0:
+                raise Exception('Unknown: {}'.format(' '.join(unknowns)))
         return {
             'positives': [ x for x in positives if x not in negatives ],
             'negatives': [ x for x in negatives if x not in positives ]
-        }
-
+        }   
+        
     @staticmethod
-    def compute_most_similar_expression(word_vectors, wexpr):
+    def compute_most_similar_expression(word_vectors, wexpr, topn=10):
         try:
             options = WordVectorUtility.split_word_expression(wexpr)
-            result = word_vectors.most_similar(positive=options['positives'], negative=options['negatives'])
-            return result
+            result = word_vectors.most_similar(positive=options['positives'], negative=options['negatives'], topn=topn)
+            return result, options
         except Exception as ex:
             logger.error(str(ex))
-            return None
+            return None, None
 
+    '''
+    TODO remove same as compute_similarity_to_dichotomies
+    '''
     @staticmethod
     def compute_similarity_to_anthologies(word_vectors, scale_x_pair, scale_y_pair, word_list):
 
@@ -55,7 +71,20 @@ class WordVectorUtility:
         df = pd.DataFrame({ 'word': word_list, 'x': word_x_similarity, 'y': word_y_similarity })
 
         return df
+    
+    @staticmethod
+    def compute_similarity_to_dichotomies(word_vectors, scale_x_pair, scale_y_pair, word_list):
 
+        scale_x = word_vectors[scale_x_pair[0]] - word_vectors[scale_x_pair[1]]
+        scale_y = word_vectors[scale_y_pair[0]] - word_vectors[scale_y_pair[1]]
+
+        word_x_similarity = [1 - spatial.distance.cosine(scale_x, word_vectors[x]) for x in word_list ]
+        word_y_similarity = [1 - spatial.distance.cosine(scale_y, word_vectors[x]) for x in word_list ]
+
+        df = pd.DataFrame({ 'word': word_list, 'x': word_x_similarity, 'y': word_y_similarity })
+
+        return df
+    
     @staticmethod
     def compute_similarity_to_single_words(word_vectors, word_x, word_y, word_list):
 
@@ -80,5 +109,3 @@ class WordVectorUtility:
     @staticmethod
     def seed_word_toplist(word_vectors, seed_word, topn=100):
         return [ seed_word ] + [ z[0] for z in word_vectors.most_similar_cosmul(seed_word, topn=topn) ]
-
-

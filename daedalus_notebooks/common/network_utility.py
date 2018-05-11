@@ -2,6 +2,10 @@ import math
 import community # pip3 install python-louvain packages
 from networkx.algorithms import bipartite
 import networkx as nx
+import bokeh.models as bm
+import bokeh.palettes
+
+from itertools import product
 
 if 'extend' not in globals():
     extend = lambda a,b: a.update(b) or a
@@ -21,16 +25,9 @@ DISTANCE_METRICS = {
     # 'Mahalanobis': 'mahalanobis',
     # 'Minkowski': 'minkowski',
     'Normalized Euclidean': 'seuclidean',
-    'Squared Euclidean': 'sqeuclidean'
-}
-
-
-layout_algorithms = {
-    'Fruchterman-Reingold': lambda x,**args: nx.spring_layout(x,**args),
-    'Eigenvectors of Laplacian':  lambda x,**args: nx.spectral_layout(x,**args),
-    'Circular': lambda x,**args: nx.circular_layout(x,**args),
-    'Shell': lambda x,**args: nx.shell_layout(x,**args),
-    'Kamada-Kawai': lambda x,**args: nx.kamada_kawai_layout(x,**args)
+    'Squared Euclidean': 'sqeuclidean',
+    'Kullback-Leibler': 'kullback–leibler',
+    'Kullback-Leibler (SciPy)': 'scipy.stats.entropy'
 }
 
 class NetworkMetricHelper:
@@ -64,7 +61,7 @@ class NetworkMetricHelper:
         max_value = max(value_vector)
         alphas = list(map(lambda h: 0.1 + 0.6 * (h / max_value), value_vector))
         return alphas
-    
+
 class NetworkUtility:
     
     @staticmethod
@@ -134,49 +131,37 @@ class NetworkUtility:
         return list(nodes), list(others)
 
     @staticmethod
-    def layout_args(layout_algorithm, network, scale):
-        args = {}
-        if layout_algorithm == 'Shell':
-            year_nodes, topic_nodes = get_bipartite_node_set(network, bipartite=0)   
-            args = dict(nlist=[year_nodes, topic_nodes])
-
-        if layout_algorithm == 'Fruchterman-Reingold':
-            k = scale #/ math.sqrt(network.number_of_nodes())
-            args = dict(dim=2, k=k, iterations=20, weight='weight', scale=0.5)
-
-        if layout_algorithm == 'Kamada-Kawai':
-            args = dict(dim=2, weight='weight', scale=1.0)
-
-        return args    
-    
-    @staticmethod
-    def create_network_from_correlation_matrix(matrix, threshold=0.0):
-
+    def create_network_from_xyw_list(values, threshold=0.0):
         G = nx.Graph()
-        #G.add_nodes_from(range(0, max(x_dim,y_dim)))
-        G.add_weighted_edges_from(NetworkUtility.matrix_weight_iterator(matrix, threshold))
+        G.add_weighted_edges_from(values)
         return G
     
-    @staticmethod
-    def matrix_weight_iterator(cm, threshold=0.0):
-        '''
-        Iterates sparse matrix and reverses distance metric in range 0 to -1 i.e.
-            weigh = 1.0 - distance
-        A high distance value should be a low weigh in the graph.
-        The matrix i assumed to be symmetric, and only one edge is returned per node pair
-        '''
-        x_dim, y_dim = cm.shape
-        return ((i, j, 1.0 - cm[i,j])
-                for i, j in product(range(0,x_dim), range(0,y_dim))
-                    if i < j and (1.0 - cm[i,j]) > threshold)
-    
-    @staticmethod
-    def df_stack_correlation_matrix(cm, threshold=0.0, n_top=100):
-        items = NetworkUtility.matrix_weight_iterator(cm, threshold)
-        return sorted(items, key=lambda x: x[2])[:n_top]
-    
-        #ns, ms, ws = list(zip(*matrix_weight_iterator(cm, threshold)))
-        #return pd.DataFrame(dict(n=ns,m=ms,weight=ws))\
-        #    .sort_values(by='weight', ascending=False)
+    #@staticmethod
+    #def create_network_from_correlation_matrix(matrix, threshold=0.0):
 
-    #     #pos = nx.graphviz_layout(G, prog="twopi") # twopi, neato, circo
+    #    G = nx.Graph()
+    #    #G.add_nodes_from(range(0, max(x_dim,y_dim)))
+    #    values = VectorSpaceHelper.symmetric_lower_left_iterator(matrix, threshold)
+    #    G.add_weighted_edges_from(values)
+    #    return G
+    
+    #@staticmethod
+    #def matrix_weight_iterator(matrix, threshold=0.0):
+    #    '''
+    #    Iterates sparse matrix and reverses distance metric in range 0 to -1 i.e.
+    #        weigh = 1.0 - distance
+    #    A high distance value should be a low weight in the graph.
+    #    The matrix i assumed to be symmetric, and only one edge is returned per node pair
+    #    '''
+    #    x_dim, y_dim = matrix.shape
+    #    return ((i, j, 1.0 - matrix[i,j])
+    #            for i, j in product(range(0,x_dim), range(0,y_dim))
+    #                if i < j and (1.0 - matrix[i,j]) >= threshold)
+    
+    #@staticmethod
+    #def df_stack_correlation_matrix(cm, threshold=0.0, n_top=100):
+    #    items = NetworkUtility.matrix_weight_iterator(cm, threshold)
+    #    return sorted(items, key=lambda x: x[2])[:n_top]
+    
+# pos = nx.graphviz_layout(G, prog="twopi") # twopi, neato, circo
+

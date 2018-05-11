@@ -10,7 +10,7 @@ plotly.tools.set_credentials_file(username='humlab', api_key='IuJbSzEnhQIdgGV2fG
 #
 
 from plotly import __version__
-from plotly.offline import import download_plotlyjs, init_notebook_mode, plot, iplot
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 
 # %% Main
 geocoded_location_tags_filename = './data/Daedalus_1931-2014_geocoded_location_tags.xlsx'

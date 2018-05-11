@@ -68,30 +68,28 @@ plt.show()
 
 # %%
 
-# %%
+import sys
+import os
+import subprocess
+import datetime
+import platform
 
-    import sys
-    import os
-    import subprocess
-    import datetime
-    import platform
+import pandas as pd
+import matplotlib.pyplot as plt
 
-    import pandas as pd
-    import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+from cartopy.io.img_tiles import OSM
+import cartopy.feature as cfeature
+from cartopy.io import shapereader
+from cartopy.io.img_tiles import StamenTerrain
+from cartopy.io.img_tiles import GoogleTiles
+#from owslib.wmts import WebMapTileService
 
-    import cartopy.crs as ccrs
-    from cartopy.io.img_tiles import OSM
-    import cartopy.feature as cfeature
-    from cartopy.io import shapereader
-    from cartopy.io.img_tiles import StamenTerrain
-    from cartopy.io.img_tiles import GoogleTiles
-    #from owslib.wmts import WebMapTileService
+from matplotlib.path import Path
+import matplotlib.patheffects as PathEffects
+import matplotlib.patches as mpatches
 
-    from matplotlib.path import Path
-    import matplotlib.patheffects as PathEffects
-    import matplotlib.patches as mpatches
-
-    import numpy as np
+import numpy as np
 
 # %%
 plt.figure(figsize=(13,6.2))

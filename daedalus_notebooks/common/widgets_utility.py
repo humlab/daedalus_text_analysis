@@ -76,6 +76,9 @@ class BaseWidgetUtility():
         args = extend(dict(min=0, max=0, step=1, value=0, disabled=False, continuous_update=False), args)
         return widgets.IntSlider(description=description, **args)
 
+    def create_int_range_slider(self, **args):
+        return widgets.IntRangeSlider(**args)
+    
     def create_float_slider(self, description, **args):
         args = extend(dict(min=0.0, max=0.0, step=0.1, value=0.0, disabled=False, continuous_update=False), args)
         return widgets.FloatSlider(description=description, **args)
@@ -110,8 +113,8 @@ class BaseWidgetUtility():
     def create_text_area_input_widget(self, **opts):
         return widgets.Textarea(**opts)
 
-    def create_text_widget(self, element_id=None):
-        value = "<span class='{}'/>".format(element_id) if element_id is not None else ''
+    def create_text_widget(self, element_id=None, default_value=''):
+        value = "<span class='{}' style='line-height: 20px;'>{}</span>".format(element_id, default_value) if element_id is not None else ''
         return widgets.HTML(value=value, placeholder='', description='')
 
     def create_prev_button(self, callback):
@@ -121,26 +124,21 @@ class BaseWidgetUtility():
         return self.create_button(description=">>", callback=callback)
 
     def create_next_id_button(self, name, count):
-
-        this = self
-        def handler(b):
-            control = getattr(this, name, None)
+        that = self
+        def f(b):
+            control = getattr(that, name, None)
             if control is not None:
                 control.value = (control.value + 1) % count
-            else:
-                logger.info('Not found')
-
-        return self.create_button(description=">>", callback=handler)
-
+        return self.create_button(description=">>", callback=f)
+        
     def create_prev_id_button(self, name, count):
-
-        def handler(b):
-            control = getattr(self, name, None)
+        that = self
+        def f(b):
+            control = getattr(that, name, None)
             if control is not None:
-                control.value = (control.value - 1) % count
-
-        return self.create_button(description="<<", callback=handler)
-
+                control.value = (control.value - 1) % count     
+        return self.create_button(description="<<", callback=f)
+            
     def next_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value + 1) % self.n_topics
     def prev_topic_id_clicked(self, b): self.topic_id.value = (self.topic_id.value - 1) % self.n_topics
 

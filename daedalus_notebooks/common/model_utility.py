@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import gensim
 from gensim.models import Word2Vec, LdaModel
 from sklearn.feature_extraction import DictVectorizer
 import pandas as pd
@@ -63,7 +64,8 @@ class ModelUtility:
             csv_filename = os.path.join(data_folder, '{}/'.format(basename), 'result_{}_{}.csv'.format(basename, sheet))
             if os.path.exists(csv_filename):
                 # logger.info('Loading CSV...')
-                ModelUtility.get_excel_models(data_folder).get(basename)[sheet] = pd.read_csv(csv_filename, sep='\t')
+                ModelUtility.get_excel_models(data_folder)\
+                    .get(basename)[sheet] = pd.read_csv(csv_filename, sep='\t')
             else:
                 # logger.info('Loading EXCEL...')
                 _ = ModelUtility.get_excel_model(data_folder, basename)
@@ -71,7 +73,13 @@ class ModelUtility:
             logger.info("Using CACHE data...")
         return ModelUtility.get_excel_models(data_folder).get(basename).get(sheet)
 
-
+    
+    @staticmethod
+    def get_topic_keys(data_folder, basename):
+        df = ModelUtility.get_result_model_sheet(data_folder, basename, 'topic_tokens')
+        df = df.set_index('topic_id')
+        return df
+    
     @staticmethod
     def get_document_topic_weights_pivot(df_data, aggregate_key, pivot_column='year'):
         df_temp = pd.pivot_table(
@@ -104,7 +112,7 @@ class ModelUtility:
         df_temp = topic_token_weights if topic_id is None else topic_token_weights[(topic_token_weights.topic_id == topic_id)]
         df = df_temp.sort_values('weight', ascending=False)[:n_words]
         return df
-
+    
     @staticmethod
     def load_model_vector(filename):
         model = LdaModel.load(filename)
@@ -116,12 +124,12 @@ class ModelUtility:
     def get_corpus_documents(data_folder, basename):
         # corpus = corpora.MmCorpus(os.path.join(data_folder, basename, 'corpus.mm'))
         # doc_length = pd.DataFrame(dict(length=[ len(x) for x in corpus]))
-        filename = os.path.join(data_folder, basename, 'corpus_documents.csv')
+        filename = os.path.join(data_folder, basename, 'document_index.csv')
         corpus_documents = pd.read_csv(filename, sep='\t', header=0)
         return corpus_documents
-
+       
     @staticmethod
-    def compute_topic_terms_vector_space(lda, n_words=100):
+    def compute_topic_terms_vector_space_deprecated(lda, n_words=100):
         '''
         Computes a vector space based on top n_words words for each topics.
         Since the subset of words differs, and their positions differs between topics
@@ -138,6 +146,18 @@ class ModelUtility:
         ''' Use DictVectorizer to align the terms so that each position in resulting vector are the same word '''
         v = DictVectorizer()
         X = v.fit_transform(rows)
+        return X, v.get_feature_names()
+
+    @staticmethod
+    def compute_and_align_vector_space(feature_data):
+        '''
+        feature_data is an unaligned list of dicts [ { t1: v, ..., tn: v }, ..., { t1': v1', ..., tn': vn' } ]
+        
+         DictVectorizer to align the terms so that each position in resulting vector are the same token,
+         and create a sparse result matrix
+        '''
+        v = DictVectorizer()
+        X = v.fit_transform(feature_data)
         return X, v.get_feature_names()
 
     @staticmethod
@@ -177,4 +197,54 @@ class ModelUtility:
         topic_proportion = topic_frequency / topic_frequency.sum()
 
         return topic_proportion
+    
+    @staticmethod
+    def load_dictionary(data_folder, basename):
+        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+        dictionary = gensim.corpora.Dictionary.load(filename)
+        return dictionary
 
+    @staticmethod
+    def store_dictionary(data_folder, basename, dictionary):
+        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+        dictionary.save(filename)
+
+    @staticmethod
+    def store_corpus(data_folder, basename, corpus):
+        filename = os.path.join(data_folder, basename, 'corpus.mm')
+        gensim.corpora.MmCorpus.serialize(filename, corpus)
+
+    @staticmethod
+    def load_corpus(data_folder, basename):
+        filename = os.path.join(data_folder, basename, 'corpus.mm')
+        corpus = gensim.corpora.MmCorpus(filename)
+        return corpus
+'''
+Helpers (temporary) for adding alpha to token index
+'''
+def _read_topic_keys(data_folder, basename):
+    filename = os.path.join(data_folder, basename, 'topickeys.txt')
+    if os.path.isfile(filename):
+        df = pd.read_csv(filename, sep='\t', header=None, names=['topic_id', 'alpha', 'tokens'], decimal=b',')
+        return df
+    return None
+
+def _read_result_model_sheet(csv_filename):
+    df = pd.read_csv(csv_filename, sep='\t', header=None, names=['topic_id', 'tokens'])
+    df = df[df.topic_id!='alpha']
+    df.topic_id = df.topic_id.astype(int)
+    return df
+
+def _save_result_model_sheet(csv_filename):
+    df = pd.to_csv(csv_filename, sep='\t')
+    return df
+
+def _fix_topictokens():
+    csv_filename = os.path.join(state.data_folder, state.basename, 'result_{}_topic_tokens.csv'.format(state.basename))
+
+    topickeys = _read_topic_keys(state.data_folder, state.basename).set_index('topic_id')[['alpha']]
+    topictokens = _read_result_model_sheet(csv_filename).set_index('topic_id')
+    new_topictokens = pd.merge(topictokens, topickeys, how='inner', left_index=True, right_index=True)
+
+    new_topictokens.to_csv(csv_filename, sep='\t')
+    print('Topic Tokens Fixed!')
