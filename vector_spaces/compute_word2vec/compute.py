@@ -1,107 +1,107 @@
-import gzip, shutil
+import gzip
+import shutil
 import os
-from nltk.tokenize import sent_tokenize, word_tokenize
 import gensim.models
-from gensim.models.word2vec import Word2Vec
-from nltk.corpus import stopwords
-from w2v_projector import W2V_TensorFlow
-import zipfile
-import glob
+import nltk.corpus
 import logging
+import pandas as pd
 from common import FileUtility
-from . import ModelStore
+from sparv_annotater import RawTextCorpus, ZipFileIterator
 
-logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s",  level=logging.INFO)
+logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
 
-class CorpusCleanser(object):
-
-    def __init__(self, options):
-        self.stopwords = set(stopwords.words('swedish'))
-        self.options = options
-
-    def cleanse(self, sentence, min_word_size=2):
-
-        sentence = [ x.lower() for x in sentence ]
-        #sentence = [ x for x in sentence if len(x) >= min_word_size ]
-        if self.options.get('filter_stopwords', False):
-            sentence = [ x for x in sentence if x not in self.stopwords ]
-        #sentence = [ x for x in sentence if not x.isdigit() ]
-        sentence = [ x for x in sentence if any(map(lambda x: x.isalpha(), x)) ]
-        return sentence
-
-    def compress(self, filename):
-        with open(filename, 'rb') as f_in:
-            with gzip.open(filename + '.gz', 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+def compress(filename):
+    with open(filename, 'rb') as f_in:
+        with gzip.open(filename + '.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
 class Word2Vectorizer(object):
 
-    def __init__(self, options):
-        self.options = options
+    def process(self, source_stream, filter_stopwords=True, segment_strategy='sentence', segment_size=0, bigram_transform=False, **run_opts):
 
-    def process(self, sentences):
+        transformers = [
+            (lambda tokens: [ x for x in tokens if any(map(lambda x: x.isalpha(), x)) ])
+        ]
 
-        model = Word2Vec(
-            sentences,
-            size=self.options['size'],
-            window=self.options['window'],
-            sg=self.options['sg'],
-            iter=self.options['iter'],
-            min_count=self.options['min_count'],
-            workers=self.options['workers']
+        if filter_stopwords is True:
+            stopwords = nltk.corpus.stopwords.words('swedish')
+            transformers.append(
+                lambda tokens: [ x for x in tokens if x not in stopwords ]
+            )
+
+        if bigram_transform is True:
+            train_corpus = RawTextCorpus(source_stream, segment_strategy='sentence', transformers=[])
+            phrases = gensim.models.phrases.Phrases(train_corpus)
+            bigram = gensim.models.phrases.Phraser(phrases)
+            transformers.append(
+                lambda tokens: bigram[tokens]
+            )
+
+        corpus = RawTextCorpus(
+            source_stream,
+            segment_strategy=segment_strategy,
+            segment_size=segment_size,
+            transformers=transformers
         )
-        return model
 
-class ZipFileSentenizer(object):
+        model = gensim.models.word2vec.Word2Vec(corpus, **run_opts)
 
-    def __init__(self, pattern, cleanser=None, extensions = [ 'txt' ]):
+        return model, corpus.stats
 
-        self.pattern = pattern
-        self.cleanser = cleanser
-        self.extensions = extensions
 
-    def __iter__(self):
+def create_basename(run_id, filter_stopwords, bigram_transform, segment_strategy, segment_size, run_opts):
+    return '{}_win{}_dim{}_iter{}_min{}{}{}{}{}'.format(
+        'cbow' if run_opts['sg'] == 0 else 'sg',
+        run_opts.get('window', 5),
+        run_opts.get('size', 100),
+        run_opts.get('iter', 5),
+        run_opts.get('min_count', 0),
+        '_nostop' if filter_stopwords else '',
+        '_bg' if bigram_transform else '',
+        '_{}{}'.format(segment_strategy, str(segment_size) if segment_strategy == 'chunk' else ''),
+        run_id
+    )
 
-        for zip_path in glob.glob(self.pattern):
-            with zipfile.ZipFile(zip_path) as zip_file:
-                filenames = [ name for name in zip_file.namelist() if any(map(name.endswith, self.extensions)) ]
-                for filename in filenames:
-                    with zip_file.open(filename) as text_file:
-                        content = text_file.read().decode('utf8').replace('-\r\n','').replace('-\n','')
-                        if content == '': continue
-                        # fix hyphenations i.e. hypens at end om libe
-                        for sentence in sent_tokenize(content, language='swedish'):
-                            tokens = word_tokenize(sentence)
-                            if self.cleanser is not None:
-                                tokens = self.cleanser.cleanse(tokens)
-                            if len(tokens) > 0:
-                                yield tokens
+def compute_word2vec(
+    run_id,
+    source_path,
+    output_path,
+    filter_stopwords=True,
+    segment_strategy='sentence',
+    segment_size=0,
+    bigram_transform=False,
+    run_opts=None
+):
 
-def compute_word2vec(options):
+    assert run_opts is not None
 
-    if options['skip']:
-        return
+    basename = create_basename(run_id, filter_stopwords, bigram_transform, segment_strategy, segment_size, run_opts)
+    directory = os.path.join(output_path, basename + '\\')
 
-    basename = ModelStore.create_basename(options)
-    directory = os.path.join(options['output_path'], basename + '\\')
+    if not source_path.endswith('zip'):
+        raise Exception('Only source implemented is a ZIP-file that contains TXT-files')
 
-    repository = FileUtility(directory)
-    repository.create(True)
+    source_stream = ZipFileIterator(source_path, [ 'txt' ])
 
-    sentences = ZipFileSentenizer(options['input_path'], CorpusCleanser(options))
+    vectorizer = Word2Vectorizer()
 
-    if options.get('bigram_transformer', False):
-        bigram_transformer = gensim.models.phrases.Phraser(sentences)
-        sentences_iterator =  bigram_transformer[sentences]
-    else:
-        sentences_iterator =  sentences
+    model, corpus_stats = vectorizer.process(
+        source_stream,
+        filter_stopwords=filter_stopwords,
+        segment_strategy=segment_strategy,
+        segment_size=segment_size,
+        bigram_transform=bigram_transform,
+        **run_opts
+    )
 
-    model = Word2Vectorizer(options).process(sentences_iterator)
+    FileUtility(directory).create(True)
 
-    model_filename = os.path.join(directory, 'w2v_model_{}.dat'.format(basename))
+    model_filename = os.path.join(directory, '{}.dat'.format(basename))
     model.save(model_filename)
 
-    model_tsv_filename = os.path.join(directory, 'w2v_vector_{}.tsv'.format(basename))
+    model_tsv_filename = os.path.join(directory, 'vector_{}.tsv'.format(basename))
     model.wv.save_word2vec_format(model_tsv_filename)
 
-    W2V_TensorFlow().convert_file(model_filename, dimension=options['size'])
+    # W2V_TensorFlow().convert_file(model_filename, dimension=options['size'])
+    stats = pd.DataFrame(corpus_stats, columns=['filename', 'total_tokens', 'tokens'])
+    stats.to_csv(os.path.join(directory, 'stats_{}.tsv'.format(basename)), sep='\t')

@@ -43,25 +43,18 @@ class SparvCorpusReader():
     https://spraakbanken.gu.se/swe/forskning/infrastruktur/sparv/annotationer
 
     '''
-    def __init__(self, source, postags=None, chunk_size=None, lowercase=True, min_token_size=3, xslt_filename=None, deliminator="|", lemmatize=True):
+    def __init__(self, source, transforms, postags=None, chunk_size=None, xslt_filename=None, deliminator="|", lemmatize=True):
+
         self.xslt_filename = xslt_filename or XSLT_FILENAME
         self.source = source
         self.postags = postags if postags is not None else ''
         self.chunk_size = chunk_size or 10000
-        self.lowercase = lowercase
         self.xslt = etree.parse(self.xslt_filename)
-        self.transformer = etree.XSLT(self.xslt)
-        self.min_token_size = min_token_size
+        self.xslt_transformer = etree.XSLT(self.xslt)
         self.deliminator = deliminator
         self.tokenize = self.sparv_tokenize
         self.lemmatize = lemmatize
-        self.transforms = [ self.remove_empty ]
-
-        if self.lowercase is True:
-            self.transforms.append(lambda _tokens: list(map(lambda y: y.lower(), _tokens)))
-
-        if self.min_token_size > 0:
-            self.transforms.append(lambda _tokens: [ x for x in _tokens if len(x) >= self.min_token_size ])
+        self.transforms = [ self.remove_empty ] + (transforms or [])
 
     def apply_transforms(self, tokens):
         for ft in self.transforms:
@@ -77,11 +70,9 @@ class SparvCorpusReader():
     def document_iterator(self, content):
         xml = etree.parse(StringIO(content))
         target = "'lemma'" if self.lemmatize is True else "'content'"
-        text = self.transformer(xml, postags=self.postags, deliminator="'{}'".format(self.deliminator), target=target)
+        text = self.xslt_transformer(xml, postags=self.postags, deliminator="'{}'".format(self.deliminator), target=target)
         tokens = list(self.tokenize(text))
         tokens = self.apply_transforms(tokens)
-        if self.min_token_size > 1:
-            tokens = [ x for x in tokens if len(x) >= self.min_token_size ]
         if self.chunk_size is None:
             yield tokens
         else:

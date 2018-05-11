@@ -55,6 +55,7 @@ class ModelUtilityTestCase(unittest.TestCase):
 
         source = [ ('test_1987_01.xml', xml_data), ('test_1987_02.xml', xml_data), ('test_1987_03.xml', xml_data) ]
 
+        
         stream = SparvCorpusReader(source=source, postags="'|NN|'", chunk_size=None, lowercase=True, min_token_size=3, lemmatize=True)
 
         corpus = SparvTextCorpus(stream=stream)

@@ -4,29 +4,9 @@ import sys
 import os
 import nltk
 import gensim
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
-# MOVED!!!!
+
 __cwd__ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
-__root_path__ = os.path.abspath(os.path.join(__cwd__, '..'))
+__root_path__ = os.path.abspath(__cwd__)  # os.path.join(__cwd__, '.'))
 
 sys.path.append(__root_path__)
 
@@ -54,18 +34,42 @@ class DaedalusTopicModelRunner:
 
     def create_corpus(self, opt):
 
-        if opt.get('corpus_type', 'sparv_xml') == 'sparv_xml':
+        language = opt.get("language", 'swedish')
 
+        transformers = [
+            (lambda tokens: [ x for x in tokens if any(map(lambda x: x.isalpha(), x)) ])
+        ]
+
+        if opt.get("filter_stopwords", False) is True:
+            stopwords = nltk.corpus.stopwords.words(language)
+            transformers.append(
+                lambda tokens: [ x for x in tokens if x not in stopwords ]
+            )
+
+        min_token_size = opt.get("min_token_size", 3)
+        if min_token_size > 0:
+            transformers.append(
+                lambda tokens: [ x for x in tokens if len(x) >= min_token_size ]
+            )
+
+        if opt.get("lowercase", True) is True:
+            transformers.append(lambda _tokens: list(map(lambda y: y.lower(), _tokens)))
+
+        if opt.get('corpus_type', 'sparv_xml') == 'sparv_xml':
+            postags = opt.get("postags", '') or ''
             stream = SparvCorpusReader(
                 source=opt.get('source', []),
-                postags="'{}'".format(opt.get("postags")),
+                transforms=transformers,
+                postags="'{}'".format(postags),
                 chunk_size=opt.get("chunk_size", None),
-                lowercase=opt.get("lowercase", True),
-                min_token_size=opt.get("min_token_size", 3),
                 lemmatize=opt.get("lemmatize", True)
             )
 
             corpus = SparvTextCorpus(stream, prune_at=opt.get("prune_at", 2000000))
+
+        elif opt.get('corpus_type', '') == 'load_corpus_mm':
+
+            corpus = None
 
         else:
 
@@ -77,22 +81,6 @@ class DaedalusTopicModelRunner:
 
             stream = ZipFileIterator(source, [ 'txt' ])
 
-            transformers = [
-                (lambda tokens: [ x for x in tokens if any(map(lambda x: x.isalpha(), x)) ])
-            ]
-
-            if opt.get("filter_stopwords", False) is True:
-                stopwords = nltk.corpus.stopwords.words('swedish')
-                transformers.append(
-                    lambda tokens: [ x for x in tokens if x not in stopwords ]
-                )
-
-            if opt.get("min_token_size", 0) > 0:
-                min_token_size = opt.get("min_token_size", 0)
-                transformers.append(
-                    lambda tokens: [ x for x in tokens if len(x) >= min_token_size ]
-                )
-
             corpus = RawTextCorpus(
                 stream,
                 segment_strategy=opt.get("segment_strategy", "document"),
@@ -102,17 +90,20 @@ class DaedalusTopicModelRunner:
 
         return corpus
 
-    def compute(self, corpus, options):
+    def compute(self, corpus, store, options):
 
-        return topic_modelling.compute(corpus, options=options)
+        return topic_modelling.compute(corpus, store=store, options=options)
 
 DEFAULT_OPT = {
     "skip": False,
+    "language": 'swedish',
+    "clear_target_folder": True,
     "corpus_type": "sparv_xml",
     "postags": '|NN|PM|',
     "chunk_size": None,
     "lowercase": True,
     "min_token_size": 3,
+    'filter_stopwords': True,
     "lemmatize": True,
     'lda_engine': 'LdaMallet',
     "lda_options": {
@@ -126,22 +117,21 @@ DEFAULT_OPT = {
 
 if __name__ == "__main__":
 
-    source = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\daedalus_articles_pos_xml.zip'
+    #  source = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\daedalus_articles_pos_xml.zip'
+    source = 'H:\\Temp\\SOU_1945-1989.zip'
+    #  source = 'H:\\Temp\\1945_10.zip'
 
     '''
     See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
     '''
 
-    for n_topics in [10, 50, 100, 150, 200]:
+    for n_topics in [300]:
 
         options_list = [
-
-            # { 'source': source, 'postags': '', 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": n_topics, "iterations": 2000 }, 'engine_path': mallet_path  },
-            # { 'source': source, 'lda_engine': 'LdaMallet', 'lda_options': { "num_topics": n_topics, "iterations": 2000 }, 'engine_path': mallet_path  },
-            # { 'source': source, 'lda_engine': 'LdaModel', 'lda_options': { "num_topics": n_topics, "iterations": 2000, 'chunksize': 100000, 'passes': 2  } },
-
             {
-                'corpus_type': 'text',
+                'corpus_type': 'sparv_xml',
+                #  'corpus_type': 'load_corpus_mm',
+                'clear_target_folder': False,
                 'source': source,
                 'postags': None,
                 'chunk_size': 1000,
@@ -163,21 +153,14 @@ if __name__ == "__main__":
             if opt.get('skip', False) is True:
                 continue
 
-            data_folder = opt['root_folder']
-            basename = topic_modelling.ModelUtility.create_basename(opt)
-            directory = os.path.join(data_folder, basename)
+            store = topic_modelling.ModelStore(opt)
 
-            FileUtility(directory).create(True)
+            FileUtility(store.target_folder).create(opt.get('clear_target_folder', True))
 
             runner = DaedalusTopicModelRunner()
-
             corpus = runner.create_corpus(opt)
+            model = runner.compute(corpus, store=store, options=opt)
 
-            if False:
-                runner.save_documents(corpus, root_folder=directory)
-
-            model = runner.compute(corpus, opt)
-
-            topic_modelling.generate_notebook_friendly_data(model, data_folder, basename)
+            topic_modelling.generate_notebook_friendly_data(store)
 
             # topic_modelling.convert_to_pyLDAvis(data_folder, basename)

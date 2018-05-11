@@ -9,6 +9,8 @@ from gensim.models.ldamodel import LdaModel
 import glob
 import logging
 
+join = os.path.join
+
 __cwd__ = os.path.abspath(__file__) if '__file__' in globals() else os.getcwd()
 
 sys.path.append(__cwd__)
@@ -19,14 +21,22 @@ logger = logging.getLogger(__name__)
 class ModelUtility():
 
     @staticmethod
+    def get_model_folder(opt):
+        root_folder = opt['root_folder']
+        basename = ModelUtility.create_basename(opt)
+        model_folder = join(root_folder, basename + '\\')
+        return model_folder, basename
+
+    @staticmethod
     def create_basename(opt):
         prune_at = opt.get("prune_at", 2000000)
         dfs_min = opt.get("dfs_min", 0)
         dfs_max = opt.get("dfs_max", 0)
         lda_opts = opt.get("lda_options", {})
+        postags = opt.get("postags", '') or ''
         return "{}{}{}{}{}{}{}{}{}".format(
             'topics_{}'.format(lda_opts.get("num_topics", 0)),
-            '_'.join(opt["postags"].split('|')),
+            '_'.join(postags.split('|')),
             '_no_chunks' if opt.get("chunk_size", None) is None else 'bz_{}'.format(opt.get("chunk_size", 0)),
             '_iterations_{}'.format(lda_opts.get("iterations", 0)),
             '_lowercase' if opt.get("lowercase", False) else '',
@@ -42,55 +52,55 @@ class ModelUtility():
     #     lda = ldamallet.malletmodel2ldamodel(mallet_lda)
     #     return lda
 
-    @staticmethod
-    def load_gensim_lda_model(data_folder, basename):
-        filename = os.path.join(data_folder, basename, 'gensim_model_{}.gensim.gz'.format(basename))
-        lda = LdaModel.load(filename)
-        return lda
+    # @staticmethod
+    # def load_gensim_lda_model(data_folder, basename):
+    #     filename = os.path.join(data_folder, basename, 'gensim_model_{}.gensim.gz'.format(basename))
+    #     lda = LdaModel.load(filename)
+    #     return lda
 
-    @staticmethod
-    def store_gensim_lda_model(data_folder, basename, lda):
-        filename = os.path.join(data_folder, basename, 'gensim_model_{}.gensim.gz'.format(basename))
-        lda.save(filename)
+    # @staticmethod
+    # def store_gensim_lda_model(data_folder, basename, lda):
+    #     filename = os.path.join(data_folder, basename, 'gensim_model_{}.gensim.gz'.format(basename))
+    #     lda.save(filename)
 
-    @staticmethod
-    def load_dictionary(data_folder, basename):
-        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
-        dictionary = gensim.corpora.Dictionary.load(filename)
-        return dictionary
+    # @staticmethod
+    # def load_dictionary(data_folder, basename):
+    #     filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+    #     dictionary = gensim.corpora.Dictionary.load(filename)
+    #     return dictionary
 
-    @staticmethod
-    def store_dictionary(data_folder, basename, dictionary):
-        filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
-        dictionary.save(filename)
+    # @staticmethod
+    # def store_dictionary(data_folder, basename, dictionary):
+    #     filename = os.path.join(data_folder, basename, 'corpus.dict.gz')
+    #     dictionary.save(filename)
 
-    @staticmethod
-    def store_corpus(data_folder, basename, corpus):
-        filename = os.path.join(data_folder, basename, 'corpus.mm')
-        gensim.corpora.MmCorpus.serialize(filename, corpus)
+    # @staticmethod
+    # def store_corpus(data_folder, basename, corpus):
+    #     filename = os.path.join(data_folder, basename, 'corpus.mm')
+    #     gensim.corpora.MmCorpus.serialize(filename, corpus)
 
-    @staticmethod
-    def load_corpus(data_folder, basename):
-        filename = os.path.join(data_folder, basename, 'corpus.mm')
-        corpus = gensim.corpora.MmCorpus(filename)
-        return corpus
+    # @staticmethod
+    # def load_corpus(data_folder, basename):
+    #     filename = os.path.join(data_folder, basename, 'corpus.mm')
+    #     corpus = gensim.corpora.MmCorpus(filename)
+    #     return corpus
 
     @staticmethod
     def store_document_index(data_folder, basename, documents):
-        filename = os.path.join(data_folder, basename, 'document_index.csv')
+        filename = join(data_folder, basename, 'document_index.csv')
         df = pd.DataFrame(documents).set_index('document_id')
         df.to_csv(filename, sep='\t', header=True)
         return df
 
     @staticmethod
     def load_document_index(data_folder, basename):
-        filename = os.path.join(data_folder, basename, 'document_index.csv')
+        filename = join(data_folder, basename, 'document_index.csv')
         df = pd.read_csv(filename, sep='\t', header=0).set_index('document_id')
         return df
 
     @staticmethod
     def load_result_excel_sheet(data_folder, basename, sheet):
-        filename = os.path.join(data_folder, basename, 'result_{}.xlsx'.format(basename))
+        filename = join(data_folder, basename, 'result_{}.xlsx'.format(basename))
         with pd.ExcelFile(filename) as xls:
             df = pd.read_excel(xls, sheet)
         return df
@@ -101,7 +111,7 @@ class ModelUtility():
 
     @staticmethod
     def load_mallet_document_topics(data_folder, basename, melt=False):
-        filename = os.path.join(data_folder, basename, 'doctopics.txt')
+        filename = join(data_folder, basename, 'doctopics.txt')
         df = pd.read_table(filename, header=None, index_col=0)
         n_topics = len(df.columns) - 1
         df.columns = ['document_id'] + list(range(0, n_topics))
@@ -133,4 +143,4 @@ class ModelUtility():
 
     @staticmethod
     def get_model_names(source_folder):
-        return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*')) ]
+        return [ os.path.split(x)[1] for x in glob.glob(join(source_folder, '*')) ]

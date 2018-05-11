@@ -29,6 +29,7 @@ def isfileext(path, extension):
         return file_extension == extension
     except:
         return False
+
 class FileUtility:
 
     def __init__(self, directory):

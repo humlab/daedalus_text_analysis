@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from scipy.spatial.distance import pdist, squareform
 from topic_modelling.compute_topic_models.model_store import ModelStore as store
 import matplotlib as plt
+from gensim.models.ldamodel import LdaModel
 
 def vectorize_topic_terms(lda, n_words=100):
     vec = DictVectorizer()
@@ -60,7 +61,7 @@ if __name__ == '__main__':
 
     basename = models_names[-1]
 
-    lda = store.load_gensim_lda_model(data_folder, basename)
+    lda = LdaModel.load(os.path.join(data_folder, basename, 'gensim_model_{}.gensim.gz'.format(basename)))
 
     coordinates = compute_PCA_euclidean_distances(lda)
     plot_PCA_euclidean_distanc_network(coordinates)
