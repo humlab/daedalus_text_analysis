@@ -1,26 +1,39 @@
 # -*- coding: utf-8 -*-
 import os
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, KeyedVectors
 import pandas as pd
 import numpy as np
 from scipy import spatial
 import glob
 import re
-
 import logging
+
 logger = logging.getLogger(__name__)
+
+flatten = lambda l: [ item for sublist in l for item in sublist] 
+
 
 class WordVectorUtility:
 
+    #@staticmethod
+    #def get_model_names(source_folder):
+    #    return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*.dat')) ]
+    
     @staticmethod
-    def get_model_names(source_folder):
-        return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*.dat')) ]
+    def get_model_names(source_folder, patterns=['*.dat', '*.bin.gz']):
+
+        filenames = flatten([ os.path.split(glob.glob(os.path.join(source_folder, x)))[1] for x in patterns ])
+        filenames.sort()
+        return filenames
 
     @staticmethod
-    def load_model_vector(filename):
-        model = Word2Vec.load(filename)
-        word_vectors = model.wv
-        del model
+    def load_model_vector(filename, limit=None):
+        if filename.endswith('.bin.gz'):
+            word_vectors = KeyedVectors.load_word2vec_format(filename, binary=True, limit=limit)
+        if filename.endswith('.dat'):
+            model = Word2Vec.load(filename)
+            word_vectors = model.wv
+            del model
         return word_vectors
 
     @staticmethod
