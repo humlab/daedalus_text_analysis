@@ -79,21 +79,22 @@ def compute(corpus, store, options):
 
         lda_options.update({ 'prefix': store.target_folder, "workers": 4, "optimize_interval": 10 })
         mallet_home = options.get('engine_path', '')
-        mallet_model = LdaMalletService(mm, id2word=dictionary, default_mallet_home=mallet_home, **lda_options)
-        FileUtility.compress(mallet_model.ftopicwordweights())
+        model_mallet = LdaMalletService(mm, id2word=dictionary, default_mallet_home=mallet_home, **lda_options)
+        FileUtility.compress(model_mallet.ftopicwordweights())
+        store.store_mallet_model(model_mallet)
 
-        lda_model = models.wrappers.ldamallet.malletmodel2ldamodel(mallet_model)
+        model_gensim = models.wrappers.ldamallet.malletmodel2ldamodel(model_mallet, iterations=lda_options.get('iterations', 2000))
 
-        result_model = mallet_model
+        result_model = model_mallet
 
     else:
         lda_options.update({ 'dtype': np.float64 })
-        lda_model = models.LdaModel(corpus=mm, id2word=dictionary, **lda_options)
-        result_model = lda_model
+        model_gensim = models.LdaModel(corpus=mm, id2word=dictionary, **lda_options)
+        result_model = model_gensim
 
     '''
     Persist gensim model to disk
     '''
-    store.store_gensim_lda_model(lda_model)
+    store.store_gensim_lda_model(model_gensim)
 
     return result_model

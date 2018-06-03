@@ -6,9 +6,12 @@ import nltk.corpus
 import logging
 import pandas as pd
 from common import FileUtility
+from . import ModelStore
 from sparv_annotater import RawTextCorpus, ZipFileIterator
 
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
+
+extend = lambda a, b: a.update(b) or a
 
 def compress(filename):
     with open(filename, 'rb') as f_in:
@@ -48,60 +51,26 @@ class Word2Vectorizer(object):
 
         return model, corpus.stats
 
+def compute_word2vec(opts):
 
-def create_basename(run_id, filter_stopwords, bigram_transform, segment_strategy, segment_size, run_opts):
-    return '{}_win{}_dim{}_iter{}_min{}{}{}{}{}'.format(
-        'cbow' if run_opts['sg'] == 0 else 'sg',
-        run_opts.get('window', 5),
-        run_opts.get('size', 100),
-        run_opts.get('iter', 5),
-        run_opts.get('min_count', 0),
-        '_nostop' if filter_stopwords else '',
-        '_bg' if bigram_transform else '',
-        '_{}{}'.format(segment_strategy, str(segment_size) if segment_strategy == 'chunk' else ''),
-        run_id
-    )
+    store = ModelStore(opts)
 
-def compute_word2vec(
-    run_id,
-    source_path,
-    output_path,
-    filter_stopwords=True,
-    segment_strategy='sentence',
-    segment_size=0,
-    bigram_transform=False,
-    run_opts=None
-):
-
-    assert run_opts is not None
-
-    basename = create_basename(run_id, filter_stopwords, bigram_transform, segment_strategy, segment_size, run_opts)
-    directory = os.path.join(output_path, basename + '\\')
-
-    if not source_path.endswith('zip'):
+    if not store.source_path.endswith('zip'):
         raise Exception('Only source implemented is a ZIP-file that contains TXT-files')
 
-    source_stream = ZipFileIterator(source_path, [ 'txt' ])
+    source_stream = ZipFileIterator(store.source_path, [ 'txt' ])
 
     vectorizer = Word2Vectorizer()
 
     model, corpus_stats = vectorizer.process(
         source_stream,
-        filter_stopwords=filter_stopwords,
-        segment_strategy=segment_strategy,
-        segment_size=segment_size,
-        bigram_transform=bigram_transform,
-        **run_opts
+        filter_stopwords=opts.get('filter_stopwords'),
+        segment_strategy=opts.get('segment_strategy'),
+        segment_size=opts.get('segment_size'),
+        bigram_transform=opts.get('bigram_transform'),
+        **opts.get('run_opts')
     )
 
-    FileUtility(directory).create(True)
+    FileUtility(store.target_folder).create(True)
 
-    model_filename = os.path.join(directory, '{}.dat'.format(basename))
-    model.save(model_filename)
-
-    model_tsv_filename = os.path.join(directory, 'vector_{}.tsv'.format(basename))
-    model.wv.save_word2vec_format(model_tsv_filename)
-
-    # W2V_TensorFlow().convert_file(model_filename, dimension=options['size'])
-    stats = pd.DataFrame(corpus_stats, columns=['filename', 'total_tokens', 'tokens'])
-    stats.to_csv(os.path.join(directory, 'stats_{}.tsv'.format(basename)), sep='\t')
+    store.store_model(model, corpus_stats)

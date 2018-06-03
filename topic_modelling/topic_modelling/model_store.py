@@ -33,6 +33,7 @@ class ModelStore():
         self.corpus_dict_filename = join(self.model_folder, 'corpus.dict.gz')
         self.gensim_model_filename = join(self.model_folder, 'gensim_model_{}.gensim.gz'.format(self.basename))
         self.mallet_model_filename = join(self.model_folder, 'mallet_model_{}.gensim'.format(self.basename))
+        self.mallet_filename = join(self.model_folder, 'mallet.model.gz')
 
     def _get_basename(self):
         prune_at = self.options.get("prune_at", 2000000)
@@ -40,16 +41,21 @@ class ModelStore():
         dfs_max = self.options.get("dfs_max", 0)
         lda_opts = self.options.get("lda_options", {})
         postags = self.options.get("postags", '') or ''
-        return "{}{}{}{}{}{}{}{}{}".format(
+        prefix = self.options.get("prefix", '') or ''
+        return "{}{}{}{}{}{}{}{}{}{}".format(
+            '{}'.format(prefix),
             'topics_{}'.format(lda_opts.get("num_topics", 0)),
             '_'.join(postags.split('|')),
-            '_no_chunks' if self.options.get("chunk_size", None) is None else 'chunk{}'.format(self.options.get("chunk_size", 0)),
+            '_no_chunks' if self.options.get("chunk_size", None) is None else '_chunks_{}'.format(self.options.get("chunk_size", 0)),
             '_iterations_{}'.format(lda_opts.get("iterations", 0)),
             '_lowercase' if self.options.get("lowercase", False) else '',
             '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
             '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
             '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
             '_{}'.format(self.options.get('lda_engine', '').lower()))
+
+    def store_mallet_model(self, model):
+        model.save(self.mallet_filename)
 
     def load_mallet_lda_model(self):
         mallet_lda = gensim.models.ldamallet.LdaMallet.load(self.mallet_model_filename, mmap=None)

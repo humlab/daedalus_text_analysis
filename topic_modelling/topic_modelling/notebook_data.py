@@ -4,14 +4,21 @@ import logging
 import os
 import pandas as pd
 from common.utility import FileUtility
-from .model_utility import ModelUtility
 from gensim.models.ldamodel import LdaModel
 from gensim.corpora import MmCorpus
 
 join = os.path.join
 logger = logging.getLogger('NotebookDataGenerator')
 logger.setLevel(logging.INFO)
-
+'''
+OK model.id2word
+model.get_document_topics
+  OK model.load_document_topics()
+OK model.show_topics(model.num_topics, num_words=num_words, formatted=False)
+OK model.num_topics
+OK model.alpha
+self.store.load_gensim_lda_model()
+'''
 class NotebookDataGenerator():
 
     def __init__(self, store):
@@ -25,18 +32,20 @@ class NotebookDataGenerator():
     def _compile_dictionary(self, lda):
         logger.info('Compiling dictionary...')
         token_ids, tokens = list(zip(*lda.id2word.items()))
-
+        dfs = lda.id2word.dfs.values() if lda.id2word.dfs is not None else [0] * len(tokens)
         dictionary = pd.DataFrame({
             'token_id': token_ids,
             'token': tokens,
-            'dfs': list(lda.id2word.dfs.values())
+            'dfs': list(dfs)
         }).set_index('token_id')[['token', 'dfs']]
         return dictionary
 
     def __compile_document_topics_iter(self, lda, mm, minimum_probability):
+
         data_iter = lda.get_document_topics(mm, minimum_probability=minimum_probability)\
             if hasattr(lda, 'get_document_topics')\
             else lda.load_document_topics()
+
         for i, topics in enumerate(data_iter):
             for x in topics:
                 yield (i, x[0], x[1])
@@ -92,16 +101,17 @@ class NotebookDataGenerator():
 
         return df.set_index('topic_id')
 
-    def generate(self, lda=None):
+    def generate(self, lda):
 
-        if lda is None:
-            logger.info('Loading LDA model...')
-            lda = self.store.load_gensim_lda_model()
+        # if lda is None:
+        #    logger.info('Loading LDA model...')
+        #    lda = self.store.load_gensim_lda_model()
 
         topic_keys = self.store.load_mallet_topic_keys()
 
         logger.info('Loading document index...')
         document_index = self.store.load_document_index()
+
         logger.info('Loading MM corpus...')
         mm = self.store.load_corpus()
 
@@ -151,5 +161,6 @@ class NotebookDataGenerator():
                 logger.info('Extracting sheet {} to CSV...'.format(dname))
                 df.to_csv(filename, sep='\t')
 
-def generate_notebook_friendly_data(store):
-    NotebookDataGenerator(store).generate()
+
+def generate_notebook_friendly_data(store, lda):
+    NotebookDataGenerator(store).generate(lda)

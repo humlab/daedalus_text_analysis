@@ -125,7 +125,7 @@ if __name__ == "__main__":
     See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
     '''
 
-    for n_topics in [300]:
+    for n_topics in [100]:  # , 300]:
 
         options_list = [
             {
@@ -161,6 +161,6 @@ if __name__ == "__main__":
             corpus = runner.create_corpus(opt)
             model = runner.compute(corpus, store=store, options=opt)
 
-            topic_modelling.generate_notebook_friendly_data(store)
+            topic_modelling.generate_notebook_friendly_data(store, model)
 
             # topic_modelling.convert_to_pyLDAvis(data_folder, basename)
