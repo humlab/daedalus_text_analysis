@@ -128,10 +128,25 @@ if __name__ == "__main__":
     for n_topics in [100]:  # , 300]:
 
         options_list = [
+            # {
+            #     'corpus_type': 'sparv_xml',
+            #     #  'corpus_type': 'load_corpus_mm',
+            #     'clear_target_folder': False,
+            #     'source': source,
+            #     'postags': None,
+            #     'chunk_size': 1000,
+            #     'lemmatize': False,
+            #     'lda_engine': 'LdaMallet',
+            #     'lda_options': {
+            #         "num_topics": n_topics,
+            #         "iterations": 2000
+            #     },
+            #     'engine_path': mallet_path
+            # },
             {
-                'corpus_type': 'sparv_xml',
-                #  'corpus_type': 'load_corpus_mm',
-                'clear_target_folder': False,
+                "language": 'english',
+                'corpus_type': 'text',
+                'clear_target_folder': True,
                 'source': source,
                 'postags': None,
                 'chunk_size': 1000,
@@ -143,7 +158,6 @@ if __name__ == "__main__":
                 },
                 'engine_path': mallet_path
             },
-
         ]
 
         for _options in options_list:
