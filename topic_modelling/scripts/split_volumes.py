@@ -4,24 +4,23 @@ import glob
 
 class ZipFileReader(object):
 
-    def __init__(self, pattern, cleanser=None, extensions=['txt']):
+    def __init__(self, pattern, cleanser=None, extensions=None):
 
         self.pattern = pattern
         self.cleanser = cleanser
-        self.extensions = extensions
+        self.extensions = extensions or ['txt']
 
     def __iter__(self):
 
         for zip_path in glob.glob(self.pattern):
             with zipfile.ZipFile(zip_path) as zip_file:
-                filenames = [name for name in zip_file.namelist() if any(map(lambda x:  name.endswith(x), self.extensions))]
+                filenames = [name for name in zip_file.namelist() if any(map(lambda x: name.endswith(x), self.extensions))]
                 for filename in filenames:
                     with zip_file.open(filename) as text_file:
                         content = text_file.read().decode('utf8')
                         if content == '':
                             continue
                         yield (filename, content)
-
 
 class SegmentSplitter(object):
 
@@ -44,7 +43,7 @@ class SegmentSplitter(object):
 
 def main():
 
-    path = './data/segmented-yearly-volumes.zip'
+    path = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\segmented-yearly-volumes_2015-17.zip'
 
     folder, filename = os.path.split(path)
     basename, _ = os.path.splitext(filename)

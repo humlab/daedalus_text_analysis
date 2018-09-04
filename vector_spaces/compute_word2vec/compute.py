@@ -6,7 +6,7 @@ import nltk.corpus
 import logging
 import pandas as pd
 from common import FileUtility
-from . import ModelStore
+from . model_store import ModelStore
 from sparv_annotater import RawTextCorpus, ZipFileIterator
 
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)

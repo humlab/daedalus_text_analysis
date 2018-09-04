@@ -2,6 +2,7 @@ import gensim
 import itertools
 import re
 
+# TODO Rename class
 class SparvTextCorpus(gensim.corpora.TextCorpus):
 
     def __init__(self, stream, prune_at=2000000):
@@ -58,6 +59,7 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
             for _ in self.getstream():
                 pass
 
+        print(self.corpus_documents)
         document_ids, document_names = list(zip(*(
             (document_id, document) for document_id, document in enumerate(self.corpus_documents)
         )))

@@ -4,15 +4,16 @@ from lxml import etree
 import zipfile
 from io import StringIO
 import gensim
-from common.utility import isfileext
+#from common.utility import isfileext
 import logging
+from . base_corpus_reader import BaseCorpusReader
 
 logger = logging.getLogger(__name__)
 
 script_path = os.path.dirname(os.path.abspath( __file__ ))
 XSLT_FILENAME = os.path.join(script_path, 'extract_tokens.xslt')
 
-class SparvCorpusReader():
+class SparvCorpusReader(BaseCorpusReader):
     '''
     Opens a ZIP-file containing Sparv XML files and extracts lemmatized tokens using an XSLT tranformation.
     Returns a list of tokens filtered by POS in blocks of chunk_size tokens.
@@ -45,25 +46,16 @@ class SparvCorpusReader():
     '''
     def __init__(self, source, transforms, postags=None, chunk_size=None, xslt_filename=None, deliminator="|", lemmatize=True):
 
+        super(SparvCorpusReader, self).__init__(source, transforms, chunk_size, filetype='xml')
+
         self.xslt_filename = xslt_filename or XSLT_FILENAME
-        self.source = source
         self.postags = postags if postags is not None else ''
-        self.chunk_size = chunk_size or 10000
         self.xslt = etree.parse(self.xslt_filename)
         self.xslt_transformer = etree.XSLT(self.xslt)
         self.deliminator = deliminator
         self.tokenize = self.sparv_tokenize
         self.lemmatize = lemmatize
-        self.transforms = [ self.remove_empty ] + (transforms or [])
-
-    def apply_transforms(self, tokens):
-        for ft in self.transforms:
-            tokens = ft(tokens)
-        return tokens
-
-    def remove_empty(self, t):
-        return [ x for x in t if x != '' ]
-
+    
     def sparv_tokenize(self, text, **args):
         return str(text).split(self.deliminator)  # gensim.utils.tokenize
 
@@ -79,38 +71,4 @@ class SparvCorpusReader():
             for i in range(0, len(tokens), self.chunk_size):
                 yield tokens[i: i + self.chunk_size]
 
-    def documents_iterator(self, source):
-        if isinstance(source, (list,)):
-            for document, content in source:
-                yield (document, content)
-        elif isinstance(source, str):
-            if os.path.isfile(source):
-                if source.endswith('zip'):
-                    with zipfile.ZipFile(source) as zf:
-                        filenames = [ x for x in zf.namelist() if x.endswith("xml") ]
-                        for filename in filenames:
-                            with zf.open(filename) as text_file:
-                                content = text_file.read().decode('utf8')
-                            if content == '':
-                                continue
-                            yield (filename, content)
-                elif source.endswith('xml'):
-                    with open(source, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    yield (source, content)
-            elif os.path.isdir(source):
-                logger.error("Path: source not implemented!")
-                raise Exception("Path: source not implemented!")
-            else:
-                raise Exception("Unable to determine type of source (file not found)")
-
-    def __iter__(self):
-
-        for (filename, content) in self.documents_iterator(self.source):
-            basename, _ = os.path.splitext(filename)
-            chunk_counter = 0
-            for chunk_tokens in self.document_iterator(content):
-                chunk_counter += 1
-                if len(chunk_tokens) == 0:
-                    continue
-                yield '{}_{}.txt'.format(basename, str(chunk_counter).zfill(2)), chunk_tokens
+    

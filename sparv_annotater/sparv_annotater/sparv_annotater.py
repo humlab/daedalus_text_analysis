@@ -141,8 +141,8 @@ class AnnotateService:
 
 class ArchiveAnnotater:
 
-    def __init__(self, settings=None):
-        self.service = AnnotateService(settings)
+    def __init__(self, settings=None, transforms=[]):
+        self.service = AnnotateService(settings, transforms)
 
     def annotate_content(self, content, target_file):
 
@@ -155,23 +155,22 @@ class ArchiveAnnotater:
                 result_content = pos_file.read().decode('utf8')
                 return result_content
 
-    def annotate_files_in_archive(self, path, write_xml_file=False, delete_sparv_file=True):
+    def annotate_files_in_archive(self, source_filename, target_filename, write_xml_file=False, delete_sparv_file=True):
 
-        folder, filename = os.path.split(path)
+        target_folder, _ = os.path.split(target_filename)
 
-        result_zip_name = os.path.join(folder, 'daedalus_articles_pos_xml.zip')
-        result_zf = zipfile.ZipFile(result_zip_name, 'w', zipfile.ZIP_DEFLATED)
-        with zipfile.ZipFile(path) as zf:
+        result_zf = zipfile.ZipFile(target_filename, 'w', zipfile.ZIP_DEFLATED)
+        with zipfile.ZipFile(source_filename) as zf:
             namelist = [x for x in zf.namelist() if x.endswith('txt')]
             file_count = len(namelist)
             counter = 0
             for article_name in namelist:
 
                 basename = os.path.splitext(article_name)[0]
-                download_name = os.path.join(folder, basename + '.zip')
+                download_name = os.path.join(target_folder, basename + '.zip')
                 xml_name = basename + '.xml'
 
-                if os.path.isfile(os.path.join(folder, xml_name)):
+                if os.path.isfile(os.path.join(target_folder, xml_name)):
                     logger.warning('WARNING: File {} exists, skipping...'.format(xml_name))
                     continue
 
@@ -187,7 +186,7 @@ class ArchiveAnnotater:
                 result_zf.writestr(xml_name, xml)
 
                 if write_xml_file:
-                    with io.open(os.path.join(folder, xml_name), 'w', encoding='utf8') as f:
+                    with io.open(os.path.join(target_folder, xml_name), 'w', encoding='utf8') as f:
                         f.write(xml)
 
                 if delete_sparv_file:

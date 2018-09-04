@@ -1,4 +1,5 @@
 import os
+import time
 from gensim.models.word2vec import Word2Vec
 import pandas as pd
 join = os.path.join
@@ -15,13 +16,15 @@ class ModelStore:
         self.stats_filename = join(self.target_folder, 'stats_{}.tsv'.format(self.basename))
 
     def create_basename(self, opts):
+        ts = time.strftime("%Y%m%d")
         run_opts = opts.get('run_opts')
         filter_stopwords = opts.get('filter_stopwords', False)
         bigram_transform = opts.get('bigram_transform', False)
         segment_strategy = opts.get('segment_strategy')
         segment_size = opts.get('segment_size')
         run_id = opts.get('run_id')
-        return '{}_win{}_dim{}_iter{}_min{}{}{}{}{}'.format(
+        return '{}_{}_{}_w{}_d{}_i{}_min{}{}{}{}'.format(
+            ts, run_id,
             'cbow' if run_opts['sg'] == 0 else 'sg',
             run_opts.get('window', 5),
             run_opts.get('size', 100),
@@ -29,8 +32,7 @@ class ModelStore:
             run_opts.get('min_count', 0),
             '_nostop' if filter_stopwords else '',
             '_bg' if bigram_transform else '',
-            '_{}{}'.format(segment_strategy, str(segment_size) if segment_strategy == 'chunk' else ''),
-            run_id
+            '_{}{}'.format(segment_strategy, str(segment_size) if segment_strategy == 'chunk' else '')
         )
 
     def store_model(self, model, corpus_stats=None):

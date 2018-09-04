@@ -21,15 +21,20 @@ default_opts = {
     'segment_size': 0
 }
 
+# TM: 50 100 150, Word2Vec-model:stats_sg_win20_dim100_iter20_min5_articles_1931-2014_no_stop_document
+
 if __name__ == "__main__":
 
-    source_path = './data/segmented-yearly-volumes_articles.zip'
+    source_path = './data/segmented-yearly-volumes_articles_1931-2017.zip'
     output_path = './data/output'
 
     options_list = [
-        { 'run_opts': { 'window': 2, 'size': 200 }, 'segment_strategy': 'sentence', 'bigram_transform': True },
-        { 'run_opts': { 'window': 20, 'size': 200 }, 'segment_strategy': 'document', 'bigram_transform': True  },
-        { 'run_opts': { 'window': 5, 'size': 200 }, 'segment_strategy': 'chunk', 'segment_size': 100, 'bigram_transform': True  }
+        #  { 'run_opts': { 'window': 2, 'size': 200 }, 'segment_strategy': 'sentence', 'bigram_transform': True },
+        #  { 'run_opts': { 'window': 20, 'size': 200 }, 'segment_strategy': 'document', 'bigram_transform': True  },
+        #  { 'run_opts': { 'window': 5, 'size': 200 }, 'segment_strategy': 'chunk', 'segment_size': 100, 'bigram_transform': True  },
+
+        { 'run_id': 'daedalus_1931-2017', 'run_opts': { 'window': 20, 'size': 100 }, 'segment_strategy': 'document', 'bigram_transform': False  },
+
     ]
 
     for options in options_list:

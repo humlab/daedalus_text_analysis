@@ -96,6 +96,7 @@ class DaedalusTopicModelRunner:
 
 DEFAULT_OPT = {
     "skip": False,
+    'prefix': '',
     "language": 'swedish',
     "clear_target_folder": True,
     "corpus_type": "sparv_xml",
@@ -105,76 +106,77 @@ DEFAULT_OPT = {
     "min_token_size": 3,
     'filter_stopwords': True,
     "lemmatize": True,
-    'lda_engine': 'LdaMallet',
-    "lda_options": {
-        "num_topics": 50,
-        "iterations": 2000,
-    },
+    "num_topics": [ 50 ],
+    "engines": [ ],
     'prune_at': 2000000,
     'root_folder': 'C:\\tmp\\',
     'doc_name_attrib_extractors': [('year', lambda x: int(re.search(r'(\d{4})', x).group(0)))]
 }
 
+to_sequence = lambda x: list(x if isinstance(x, (list, tuple)) else x)
+
+def file_basename(filepath):
+    return os.path.basename(os.path.splitext(filepath.replace('\\', '/'))[0])
+
 if __name__ == "__main__":
 
-    #  source = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\daedalus_articles_pos_xml.zip'
+    # source = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\daedalus_articles_pos_xml_1931-2017.zip'
     source = 'H:\\Temp\\SOU_1945-1989.zip'
-    #  source = 'H:\\Temp\\1945_10.zip'
 
     '''
     See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
     '''
+    run_options = [
+        {
+            'prefix': '#filename#',
+            'corpus_type': 'sparv_xml',  # 'load_corpus_mm',
+            'clear_target_folder': True,
+            'source': source,
+            'chunk_size': 1000,
+            'num_topics': [ 100 ],
+            'engines': [
+                {
+                    'engine_name': 'LdaMallet',
+                    'engine_option': {
+                        'iterations': 2000,
+                        'passes': 3,
+                        'engine_path': mallet_path
+                    }
+                }
+            ]
+        }
+    ]
 
-    for n_topics in [100]:  # , 300]:
+    for run_option in run_options:
 
-        options_list = [
-            # {
-            #     'corpus_type': 'sparv_xml',
-            #     #  'corpus_type': 'load_corpus_mm',
-            #     'clear_target_folder': False,
-            #     'source': source,
-            #     'postags': None,
-            #     'chunk_size': 1000,
-            #     'lemmatize': False,
-            #     'lda_engine': 'LdaMallet',
-            #     'lda_options': {
-            #         "num_topics": n_topics,
-            #         "iterations": 2000
-            #     },
-            #     'engine_path': mallet_path
-            # },
-            {
-                "language": 'english',
-                'corpus_type': 'text',
-                'clear_target_folder': True,
-                'source': source,
-                'postags': None,
-                'chunk_size': 1000,
-                'lemmatize': False,
-                'lda_engine': 'LdaMallet',
-                'lda_options': {
-                    "num_topics": n_topics,
-                    "iterations": 2000
-                },
-                'engine_path': mallet_path
-            },
-        ]
+        option = extend(dict(DEFAULT_OPT), dict(run_option))
 
-        for _options in options_list:
+        if option.get('skip', False) is True:
+            continue
 
-            opt = extend(dict(DEFAULT_OPT), _options)
+        n_topics = to_sequence(run_option['num_topics'])
 
-            if opt.get('skip', False) is True:
-                continue
+        engines = to_sequence(run_option['engines'])
 
-            store = topic_modelling.ModelStore(opt)
+        for engine in engines:
 
-            FileUtility(store.target_folder).create(opt.get('clear_target_folder', True))
+            print("engine: {}".format(engine['engine_name']))
 
-            runner = DaedalusTopicModelRunner()
-            corpus = runner.create_corpus(opt)
-            model = runner.compute(corpus, store=store, options=opt)
+            for n_topic in n_topics:
 
-            topic_modelling.generate_notebook_friendly_data(store, model)
+                option['engine_option'] = extend(engine['engine_option'], dict(num_topics=n_topics))
 
-            # topic_modelling.convert_to_pyLDAvis(data_folder, basename)
+                if option['prefix'] == '#filename#':
+                    option['prefix'] = file_basename(source)
+
+                store = topic_modelling.ModelStore(option)
+
+                FileUtility(store.target_folder).create(option.get('clear_target_folder', True))
+
+                runner = DaedalusTopicModelRunner()
+                corpus = runner.create_corpus(option)
+                model = runner.compute(corpus, store=store, options=option)
+
+                topic_modelling.generate_notebook_friendly_data(store, model)
+
+                # topic_modelling.convert_to_pyLDAvis(data_folder, basename)

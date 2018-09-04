@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import time
 import pandas as pd
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -39,20 +40,20 @@ class ModelStore():
         prune_at = self.options.get("prune_at", 2000000)
         dfs_min = self.options.get("dfs_min", 0)
         dfs_max = self.options.get("dfs_max", 0)
-        lda_opts = self.options.get("lda_options", {})
+        engine_opts = self.options.get("engine_option", {})
         postags = self.options.get("postags", '') or ''
         prefix = self.options.get("prefix", '') or ''
         return "{}{}{}{}{}{}{}{}{}{}".format(
-            '{}'.format(prefix),
-            'topics_{}'.format(lda_opts.get("num_topics", 0)),
+            '{}_{}_'.format(time.strftime("%Y%m%d"), prefix),
+            'topics_{}'.format(engine_opts.get("num_topics", 0)),
             '_'.join(postags.split('|')),
             '_no_chunks' if self.options.get("chunk_size", None) is None else '_chunks_{}'.format(self.options.get("chunk_size", 0)),
-            '_iterations_{}'.format(lda_opts.get("iterations", 0)),
+            '_iterations_{}'.format(engine_opts.get("iterations", 0)),
             '_lowercase' if self.options.get("lowercase", False) else '',
             '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
             '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
             '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
-            '_{}'.format(self.options.get('lda_engine', '').lower()))
+            '_{}'.format(self.options.get('engine_name', '').lower()))
 
     def store_mallet_model(self, model):
         model.save(self.mallet_filename)

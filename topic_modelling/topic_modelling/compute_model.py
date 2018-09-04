@@ -73,23 +73,24 @@ def compute(corpus, store, options):
     dictionary = store.load_dictionary()
     mm = store.load_corpus()
 
-    lda_options = options['lda_options']
+    engine_option = options['engine_option']
 
-    if 'MALLET' in options.get('lda_engine', '').upper():
+    if 'MALLET' in options.get('engine_name', '').upper():
 
-        lda_options.update({ 'prefix': store.target_folder, "workers": 4, "optimize_interval": 10 })
-        mallet_home = options.get('engine_path', '')
-        model_mallet = LdaMalletService(mm, id2word=dictionary, default_mallet_home=mallet_home, **lda_options)
+        engine_option.update({ 'prefix': store.target_folder, "workers": 4, "optimize_interval": 10 })
+        mallet_home = engine_option.get('engine_path', '')
+        model_mallet = LdaMalletService(mm, id2word=dictionary, default_mallet_home=mallet_home, **engine_option)
         FileUtility.compress(model_mallet.ftopicwordweights())
         store.store_mallet_model(model_mallet)
 
-        model_gensim = models.wrappers.ldamallet.malletmodel2ldamodel(model_mallet, iterations=lda_options.get('iterations', 2000))
+        model_gensim = models.wrappers.ldamallet.malletmodel2ldamodel(model_mallet, iterations=engine_option.get('iterations', 2000))
 
         result_model = model_mallet
 
-    else:
-        lda_options.update({ 'dtype': np.float64 })
-        model_gensim = models.LdaModel(corpus=mm, id2word=dictionary, **lda_options)
+    else:  # if 'MALLET' in options.get('engine_name', '').upper() == 'gensim.models.ldamodel':
+
+        engine_option.update({ 'dtype': np.float64, 'alpha': 'auto' })
+        model_gensim = models.LdaModel(corpus=mm, id2word=dictionary, **engine_option)
         result_model = model_gensim
 
     '''

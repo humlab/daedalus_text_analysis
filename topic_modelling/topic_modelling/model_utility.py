@@ -29,21 +29,23 @@ class ModelUtility():
 
     @staticmethod
     def create_basename(opt):
+        prefix = opt.get('prefix', None)
         prune_at = opt.get("prune_at", 2000000)
         dfs_min = opt.get("dfs_min", 0)
         dfs_max = opt.get("dfs_max", 0)
-        lda_opts = opt.get("lda_options", {})
+        engine_opts = opt.get("engine_option", {})
         postags = opt.get("postags", '') or ''
-        return "{}{}{}{}{}{}{}{}{}".format(
-            'topics_{}'.format(lda_opts.get("num_topics", 0)),
+        return "{}{}{}{}{}{}{}{}{}{}".format(
+            '' if prefix is None else '{}_'.format(prefix),
+            'topics_{}'.format(engine_opts.get("num_topics", 0)),
             '_'.join(postags.split('|')),
             '_no_chunks' if opt.get("chunk_size", None) is None else 'bz_{}'.format(opt.get("chunk_size", 0)),
-            '_iterations_{}'.format(lda_opts.get("iterations", 0)),
+            '_iterations_{}'.format(engine_opts.get("iterations", 0)),
             '_lowercase' if opt.get("lowercase", False) else '',
             '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
             '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
             '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
-            '_{}'.format(opt.get('lda_engine', '').lower()))
+            '_{}'.format(opt.get('engine_name', '').lower()))
 
     # @staticmethod
     # def load_mallet_lda_model(data_folder, basename):
