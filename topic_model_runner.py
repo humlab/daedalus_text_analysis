@@ -13,12 +13,13 @@ sys.path.append(__root_path__)
 import topic_modelling
 import pandas as pd
 import zipfile
-from sparv_annotater import SparvTextCorpus, SparvCorpusReader, RawTextCorpus, ZipFileIterator
+from sparv_annotater import SparvTextCorpus, SparvCorpusReader
+from sparv_annotater.raw_text_corpus import RawTextCorpus, ZipFileIterator
 from common.utility import extend, FileUtility
 
 mallet_path = 'C:\\Usr\\mallet-2.0.8'
 
-class DaedalusTopicModelRunner:
+class TopicModelRunner:
 
     def save_documents(self, corpus, target_folder):
         result_zip_name = os.path.join(target_folder, 'documents.zip')
@@ -97,7 +98,7 @@ class DaedalusTopicModelRunner:
 DEFAULT_OPT = {
     "skip": False,
     'prefix': '',
-    "language": 'swedish',
+    "language": 'english',
     "clear_target_folder": True,
     "corpus_type": "sparv_xml",
     "postags": '|NN|PM|',
@@ -110,7 +111,7 @@ DEFAULT_OPT = {
     "engines": [ ],
     'prune_at': 2000000,
     'root_folder': 'C:\\tmp\\',
-    'doc_name_attrib_extractors': [('year', lambda x: int(re.search(r'(\d{4})', x).group(0)))]
+    'doc_name_attrib_extractors': [] # [('treaty_id', lambda x: int(re.search(r'^(\w{6})_', x).group(0)))]
 }
 
 to_sequence = lambda x: list(x if isinstance(x, (list, tuple)) else x)
@@ -121,7 +122,7 @@ def file_basename(filepath):
 if __name__ == "__main__":
 
     # source = 'C:\\Users\\roma0050\\Documents\\Projects\\daedalus_text_analysis\\data\\daedalus_articles_pos_xml_1931-2017.zip'
-    source = 'H:\\Temp\\SOU_1945-1989.zip'
+    source = './test/test_data/treaties_corpus_pos_xml.zip'
 
     '''
     See https://spraakbanken.gu.se/korp/markup/msdtags.html for description of MSD-tag set
@@ -130,17 +131,18 @@ if __name__ == "__main__":
         {
             'prefix': '#filename#',
             'corpus_type': 'sparv_xml',  # 'load_corpus_mm',
+            "postags": '|NOUN|PROPN|',
             'clear_target_folder': True,
             'source': source,
             'chunk_size': 1000,
-            'num_topics': [ 100 ],
+            'num_topics': [ 5 ],
             'engines': [
                 {
-                    'engine_name': 'LdaMallet',
+                    'engine_name': 'LdaModel',
                     'engine_option': {
                         'iterations': 2000,
                         'passes': 3,
-                        'engine_path': mallet_path
+                        #'engine_path': mallet_path
                     }
                 }
             ]
@@ -164,7 +166,8 @@ if __name__ == "__main__":
 
             for n_topic in n_topics:
 
-                option['engine_option'] = extend(engine['engine_option'], dict(num_topics=n_topics))
+                option['engine_option'] = extend(engine['engine_option'], dict(num_topics=n_topic))
+                option['engine_name'] = engine['engine_name']
 
                 if option['prefix'] == '#filename#':
                     option['prefix'] = file_basename(source)
@@ -173,7 +176,7 @@ if __name__ == "__main__":
 
                 FileUtility(store.target_folder).create(option.get('clear_target_folder', True))
 
-                runner = DaedalusTopicModelRunner()
+                runner = TopicModelRunner()
                 corpus = runner.create_corpus(option)
                 model = runner.compute(corpus, store=store, options=option)
 

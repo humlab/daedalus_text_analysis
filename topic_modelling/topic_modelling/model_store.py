@@ -43,13 +43,13 @@ class ModelStore():
         engine_opts = self.options.get("engine_option", {})
         postags = self.options.get("postags", '') or ''
         prefix = self.options.get("prefix", '') or ''
-        return "{}{}{}{}{}{}{}{}{}{}".format(
+        return "{}{}{}{}{}{}{}{}{}".format(
             '{}_{}_'.format(time.strftime("%Y%m%d"), prefix),
-            'topics_{}'.format(engine_opts.get("num_topics", 0)),
+            'k={}'.format(engine_opts.get("num_topics", 0)),
             '_'.join(postags.split('|')),
-            '_no_chunks' if self.options.get("chunk_size", None) is None else '_chunks_{}'.format(self.options.get("chunk_size", 0)),
-            '_iterations_{}'.format(engine_opts.get("iterations", 0)),
-            '_lowercase' if self.options.get("lowercase", False) else '',
+            '_no_chunks' if self.options.get("chunk_size", None) is None else '_chunks={}'.format(self.options.get("chunk_size", 0)),
+            #'_i{}'.format(engine_opts.get("iterations", 0)),
+            '_lc' if self.options.get("lowercase", False) else '',
             '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
             '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
             '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',

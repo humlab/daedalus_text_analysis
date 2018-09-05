@@ -34,6 +34,7 @@ def main():
 
     service = ArchiveAnnotater(settings)
     source_name = '../data/segmented-yearly-volumes_articles.zip'
-    service.annotate_files_in_archive(source_name)
+    target_name = '../data/segmented-yearly-volumes_articles_pos_xml.zip'
+    service.annotate_files_in_archive(source_filename=source_name, target_filename=target_name)
 
 main()

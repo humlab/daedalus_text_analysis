@@ -14,10 +14,11 @@ __cwd__ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() 
 __root_path__ = os.path.join(__cwd__, '..')
 sys.path.append(__root_path__)
 
+print(sys.path)
+
 from common.utility import FileUtility, extend
-from sparv_annotater import (RawTextCorpus, SparvCorpusReader,
-                              SparvTextCorpus, TextCorpusReader,
-                              ZipFileIterator)
+from sparv_annotater import SparvCorpusReader, SparvTextCorpus, TextCorpusReader
+from sparv_annotater.raw_text_corpus import RawTextCorpus, ZipFileIterator
 
 logger = logging.getLogger(__name__)
 
