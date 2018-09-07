@@ -7,7 +7,8 @@ import logging
 import pandas as pd
 from common import FileUtility
 from . model_store import ModelStore
-from sparv_annotater import RawTextCorpus, ZipFileIterator
+from corpora.raw_text_corpus import RawTextCorpus
+from corpora.zip_iterator import ZipFileIterator
 
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
 

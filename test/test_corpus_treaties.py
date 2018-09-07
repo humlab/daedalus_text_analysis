@@ -4,11 +4,8 @@ import os
 import re
 import sys
 import unittest
-import zipfile
 
-import gensim
 import nltk
-import pandas as pd
 
 __cwd__ = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
 __root_path__ = os.path.join(__cwd__, '..')
@@ -17,16 +14,19 @@ sys.path.append(__root_path__)
 print(sys.path)
 
 from common.utility import FileUtility, extend
-from sparv_annotater import SparvCorpusReader, SparvTextCorpus, TextCorpusReader
-from sparv_annotater.raw_text_corpus import RawTextCorpus, ZipFileIterator
+from corpora.raw_text_corpus import RawTextCorpus
+from corpora.sparv_corpus_reader import SparvCorpusReader
+from corpora.sparv_text_corpus import SparvTextCorpus
+from corpora.base_corpus_reader import TextCorpusReader
+from corpora.zip_iterator import ZipFileIterator
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_OPT = {
     "skip": False,
-    "language": 'swedish',    
+    "language": 'swedish',
     "postags": '|NN|PM|',
-    #"postags": '|NOUN|PROPN|', # For non-Swedish languages
+    # "postags": '|NOUN|PROPN|', # For non-Swedish languages
     "chunk_size": None,
     "lowercase": True,
     "min_token_size": 3,
@@ -45,16 +45,14 @@ source = '..\\test_data\\treaties_corpus_pos_xml.zip'
 
 options_list = [
     {
-        "language": 'english',                
+        "language": 'english',
         'source': source,
         'postags': '|NOUN|PROPN|',
         'chunk_size': 1000,
-        'lemmatize': True,                
+        'lemmatize': True,
         'doc_name_attrib_extractors': []
     },
 ]
-
-
 
 def create_corpus(opt):
 
@@ -78,7 +76,7 @@ def create_corpus(opt):
 
     if opt.get("lowercase", True) is True:
         transformers.append(lambda _tokens: list(map(lambda y: y.lower(), _tokens)))
-   
+
     postags = opt.get("postags", '') or ''
     stream = SparvCorpusReader(
         source=opt.get('source', []),
@@ -96,7 +94,7 @@ def create_corpus(opt):
 def dummy():
     print("blä")
 
-#for _options in options_list:
+# for _options in options_list:
 
 #            opt = extend(dict(DEFAULT_OPT), _options)
 #            if opt.get('skip', False) is True:
@@ -126,14 +124,14 @@ if __name__ == '__main__':
     unittest.main()
 
 
-## unit test cases
+# unit test cases
 '''
 1. Number of retrived documents must equal number of files in ZIP with extension XML
 2. No words should be filtered out if postags is None, filter_stopwords is False and min_token_size is 0
    Test: Retrieved word count equals number of distinct words in corpus
 3. If min_token_size > 0 then there cannot exist any word in corpus len < min_token_size
 4. If filter_stopwords is true then [ x for x in corpus x in stopwords ] = [ ]
-5. If postags = 
+5. If postags =
 6. If lemma = False then non lemmatize words should exist (test på plural, testa på specifika ord)
 7. token should not be interpukntering
 8. Test lowercase

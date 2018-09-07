@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import gensim
 import itertools
-import re
 
 # TODO Rename class
 class SparvTextCorpus(gensim.corpora.TextCorpus):
@@ -74,4 +75,3 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
             data[n] = [ f(x) for x in document_names ]
 
         return data
-

@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-from lxml import etree
 import zipfile
-from io import StringIO
 import gensim
-#from common.utility import isfileext
 import logging
 
 logger = logging.getLogger(__name__)
 
 class BaseCorpusReader():
-  
+
     def __init__(self, source, transforms, chunk_size=None, filetype=''):
 
         self.filetype = filetype
@@ -18,7 +15,6 @@ class BaseCorpusReader():
         self.chunk_size = chunk_size or 10000
         self.tokenize = gensim.utils.tokenize
         self.transforms = [ self.remove_empty ] + (transforms or [])
-
 
     def apply_transforms(self, tokens):
         for ft in self.transforms:
@@ -74,8 +70,7 @@ class BaseCorpusReader():
                 yield '{}_{}.txt'.format(basename, str(chunk_counter).zfill(2)), chunk_tokens
 
 class TextCorpusReader(BaseCorpusReader):
-  
+
     def __init__(self, source, transforms, chunk_size=None):
         BaseCorpusReader.__init__(self, source, transforms, chunk_size, filetype='txt')
 
-    

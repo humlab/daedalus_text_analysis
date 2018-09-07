@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-from lxml import etree
-import zipfile
-from io import StringIO
-import gensim
-#from common.utility import isfileext
 import logging
-from . base_corpus_reader import BaseCorpusReader
+from lxml import etree
+from io import StringIO
+from corpora.base_corpus_reader import BaseCorpusReader
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +52,7 @@ class SparvCorpusReader(BaseCorpusReader):
         self.deliminator = deliminator
         self.tokenize = self.sparv_tokenize
         self.lemmatize = lemmatize
-    
+
     def sparv_tokenize(self, text, **args):
         return str(text).split(self.deliminator)  # gensim.utils.tokenize
 
@@ -70,5 +67,3 @@ class SparvCorpusReader(BaseCorpusReader):
         else:
             for i in range(0, len(tokens), self.chunk_size):
                 yield tokens[i: i + self.chunk_size]
-
-    

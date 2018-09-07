@@ -13,8 +13,10 @@ sys.path.append(__root_path__)
 import topic_modelling
 import pandas as pd
 import zipfile
-from sparv_annotater import SparvTextCorpus, SparvCorpusReader
-from sparv_annotater.raw_text_corpus import RawTextCorpus, ZipFileIterator
+from corpora.sparv_text_corpus import SparvTextCorpus
+from corpora.sparv_corpus_reader import SparvCorpusReader
+from corpora.raw_text_corpus import RawTextCorpus
+from corpora.zip_iterator import ZipFileIterator
 from common.utility import extend, FileUtility
 
 mallet_path = 'C:\\Usr\\mallet-2.0.8'
