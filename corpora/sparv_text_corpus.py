@@ -6,6 +6,9 @@ import itertools
 # TODO Rename class
 class SparvTextCorpus(gensim.corpora.TextCorpus):
 
+    '''
+    This is a BOW vector corpus based on gensim.corpora.TextCorpus
+    '''
     def __init__(self, stream, prune_at=2000000):
 
         self.dictionary = None
@@ -14,7 +17,7 @@ class SparvTextCorpus(gensim.corpora.TextCorpus):
         self.corpus_documents = []
         self.prune_at = prune_at
 
-        super(SparvTextCorpus, self).__init__(input=True)  # , token_filters=[])
+        super(SparvTextCorpus, self).__init__(input=True)
 
     def init_dictionary(self, dictionary):
         self.dictionary = gensim.corpora.Dictionary(self.get_texts(), prune_at=self.prune_at)

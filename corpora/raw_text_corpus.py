@@ -49,25 +49,12 @@ class ChunkSegmenter():
         for i in range(0, len(tokens), self.chunk_size):
             yield tokens[i:i + self.chunk_size]
 
-class ZipFileIterator(object):
+class RawTextCorpus():
 
-    def __init__(self, pattern, extensions):
-        self.pattern = pattern
-        self.extensions = extensions
-
-    def __iter__(self):
-
-        for zip_path in glob.glob(self.pattern):
-            with zipfile.ZipFile(zip_path) as zip_file:
-                filenames = [ name for name in zip_file.namelist() if any(map(name.endswith, self.extensions)) ]
-                for filename in filenames:
-                    with zip_file.open(filename) as text_file:
-                        content = text_file.read().decode('utf8')\
-                            .replace('-\r\n', '').replace('-\n', '')
-                        yield os.path.basename(filename), content
-
-class RawTextCorpus(object):
-
+    '''
+    This is a tokenized corpus in the format [ (doc_1, tokens_1), ....(doc_n, tokens_n)]
+    where tokens_x is a sequence of strings. The token order is preserved i.e. it is not a BOW
+    '''
     def __init__(self, content_iterator, segment_strategy='sentence', segment_size=0, transformers=None):
 
         if segment_strategy not in [ 'sentence', 'chunk', 'document' ]:

@@ -1,8 +1,16 @@
 #!/bin/bash
 
+
+
+
+
+declare -a arr=("element1" "element2" "element3")
+
 function copy_notebook {
+
 	target_user=$1
 	notebook=$2
+
 	cp -f ${notebook} /home/${target_user}/notebooks/${notebook}
 	chown ${target_user}.developer /home/${target_user}/notebooks/${notebook}
 }
