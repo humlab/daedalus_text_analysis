@@ -26,7 +26,7 @@ class CorpusSourceReader():
         
         if isinstance(source, str):
             if os.path.isfile(source):
-                self.source = read_textfile(source)                    
+                self.source = self.read_textfile(source)                    
             elif os.path.isdir(source):
                 self.source = (self.read_textfile(filename) for filename in glob.glob(os.path.join(folder, pattern)))
             else:
