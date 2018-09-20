@@ -6,6 +6,8 @@ vsm-data/
 tm-data/
 temp/
 test_data/
+clone/
+cloned_repos/
 *.zip
 daedalus_notebooks/data/
 daedalus_notebooks/temp/
