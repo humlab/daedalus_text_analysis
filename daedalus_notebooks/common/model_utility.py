@@ -17,8 +17,8 @@ class ModelUtility:
 
     @staticmethod
     def get_model_names(source_folder):
-        return [ os.path.split(x)[1] for x in glob.glob(os.path.join(source_folder, '*')) ]
-        #return [ os.path.split(x[0])[-1] for x in os.walk(source_folder) if len(x[0]) > 10 ]
+        folders = list(next(os.walk(source_folder))[1])
+        return [ x for x in folders if os.path.isfile(os.path.join(source_folder, x, 'corpus.mm'))]
 
     @staticmethod
     def get_excel_models(data_folder):

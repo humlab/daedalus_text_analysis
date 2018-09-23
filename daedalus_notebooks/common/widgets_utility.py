@@ -2,9 +2,6 @@
 import ipywidgets as widgets
 from bokeh.models import ColumnDataSource, CustomJS
 
-import logging
-logger = logging.getLogger(__name__)
-
 BUTTON_STYLE = dict(description_width='initial', button_color='lightgreen')
 
 if 'extend' not in globals():
@@ -45,7 +42,6 @@ class WidgetUtility:
         callback = CustomJS(args={'glyph': glyph_source, 'glyph_data': source}, code=code)
         return callback
 
-
 class BaseWidgetUtility():
 
     def __init__(self, **kwargs):
@@ -58,7 +54,11 @@ class BaseWidgetUtility():
             self.progress.value = self.progress.value + 1
             if description is not None:
                 self.progress.description = description
-
+                
+    def reset(self, description=None):
+        if 'progress' in self.__dict__.keys():
+            self.progress.value = 0
+                
     def create_int_progress_widget(self, **kwargs):
         return widgets.IntProgress(**kwargs)
 
@@ -174,3 +174,26 @@ class TopTopicWidgets(BaseWidgetUtility):
             if layout_algorithms is not None else None
 
 wf = BaseWidgetUtility()
+
+forward = wf.forward
+create_int_progress_widget = wf.create_int_progress_widget
+create_select_widget = wf.create_select_widget
+create_int_slider = wf.create_int_slider
+create_int_range_slider = wf.create_int_range_slider
+create_float_slider = wf.create_float_slider
+select_aggregate_fn_widget = wf.select_aggregate_fn_widget
+select_year_widget = wf.select_year_widget
+layout_algorithm_widget = wf.layout_algorithm_widget
+topic_id_slider = wf.topic_id_slider
+word_count_slider = wf.word_count_slider
+topic_count_slider = wf.topic_count_slider
+create_button = wf.create_button
+create_text_input_widget = wf.create_text_input_widget
+create_text_area_input_widget = wf.create_text_area_input_widget
+create_text_widget = wf.create_text_widget
+create_prev_button = wf.create_prev_button
+create_next_button = wf.create_next_button
+create_next_id_button = wf.create_next_id_button
+create_prev_id_button = wf.create_prev_id_button
+next_topic_id_clicked = wf.next_topic_id_clicked
+prev_topic_id_clicked = wf.prev_topic_id_clicked

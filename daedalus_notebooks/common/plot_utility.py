@@ -1,7 +1,15 @@
 import wordcloud
 import matplotlib.pyplot as plt
+
+if '__file__' in globals():
+    import os, sys
+    curdir = os.path.abspath(os.path.dirname(__file__))
+    if curdir not in sys.path:
+        sys.path.append(curdir)
+        
 from network_utility import NetworkMetricHelper, NetworkUtility
 from widgets_utility import WidgetUtility
+
 import networkx as nx
 import bokeh.palettes
 import bokeh.models as bm
