@@ -41,6 +41,8 @@ class WidgetUtility:
         code = WidgetUtility.glyph_hover_js_code(element_id, glyph_id, 'text', glyph_name='glyph', glyph_data='glyph_data')
         callback = CustomJS(args={'glyph': glyph_source, 'glyph_data': source}, code=code)
         return callback
+    
+glyph_hover_js_code = WidgetUtility.glyph_hover_js_code
 
 class BaseWidgetUtility():
 
@@ -113,8 +115,9 @@ class BaseWidgetUtility():
     def create_text_area_input_widget(self, **opts):
         return widgets.Textarea(**opts)
 
-    def create_text_widget(self, element_id=None, default_value=''):
-        value = "<span class='{}' style='line-height: 20px;'>{}</span>".format(element_id, default_value) if element_id is not None else ''
+    def create_text_widget(self, element_id=None, default_value='', style='', line_height='20px'):
+            
+        value = "<span class='{}' style='line-height: {};{}'>{}</span>".format(element_id, line_height, style, default_value) if element_id is not None else ''
         return widgets.HTML(value=value, placeholder='', description='')
 
     def create_prev_button(self, callback):
