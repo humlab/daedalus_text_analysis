@@ -37,14 +37,14 @@ class ModelUtility():
     #     postags = opt.get("postags", '') or ''
     #     return "{}{}{}{}{}{}{}{}{}{}".format(
     #         '' if prefix is None else '{}_'.format(prefix),
-    #         'topics_{}'.format(engine_opts.get("num_topics", 0)),
+    #         'T{}'.format(engine_opts.get("num_topics", 0)),
     #         '_'.join(postags.split('|')),
-    #         '_no_chunks' if opt.get("chunk_size", None) is None else 'bz_{}'.format(opt.get("chunk_size", 0)),
-    #         '_iterations_{}'.format(engine_opts.get("iterations", 0)),
-    #         '_lowercase' if opt.get("lowercase", False) else '',
-    #         '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
-    #         '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
-    #         '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
+    #         '' if opt.get("chunk_size", None) is None else 'B{}'.format(opt.get("chunk_size", 0)),
+    #         # '_I{}'.format(engine_opts.get("iterations", 0)),
+    #         '_LC' if opt.get("lowercase", False) else '',
+    #         '_X{}'.format(prune_at) if prune_at != 2000000 else '',
+    #         '_DFS1{}'.format(dfs_min) if dfs_min > 0 else '',
+    #         '_DFS2{}'.format(dfs_max) if dfs_max > 0 else '',
     #         '_{}'.format(opt.get('engine_name', '').lower()))
 
     # @staticmethod

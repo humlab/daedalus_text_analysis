@@ -13,12 +13,8 @@ sys.path.append(__root_path__)
 
 print(sys.path)
 
-from common.utility import FileUtility, extend
-from corpora.raw_text_corpus import RawTextCorpus
-from corpora.sparv_corpus_reader import SparvCorpusReader
+from corpora.corpus_source_reader import SparvCorpusSourceReader
 from corpora.sparv_text_corpus import SparvTextCorpus
-from corpora.base_corpus_reader import TextCorpusReader
-from corpora.zip_iterator import ZipFileIterator
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +32,6 @@ DEFAULT_OPT = {
     'root_folder': 'C:\\tmp\\',
     'doc_name_attrib_extractors': [('year', lambda x: int(re.search(r'(\d{4})', x).group(0)))]
 }
-
-# TODO: add test files, etc
-# Test data
-# test_source...
 
 source = '..\\test_data\\treaties_corpus_pos_xml.zip'
 
@@ -78,7 +70,7 @@ def create_corpus(opt):
         transformers.append(lambda _tokens: list(map(lambda y: y.lower(), _tokens)))
 
     postags = opt.get("postags", '') or ''
-    stream = SparvCorpusReader(
+    stream = SparvCorpusSourceReader(
         source=opt.get('source', []),
         transforms=transformers,
         postags="'{}'".format(postags),
@@ -106,7 +98,6 @@ def dummy():
 #                    print(corpus.dictionary[token_id], token_count)
 
 
-# TODO: add tests
 class CorpusTreatiesTests(unittest.TestCase):
 
     def setUp(self):
@@ -117,7 +108,6 @@ class CorpusTreatiesTests(unittest.TestCase):
 
     def test_test(self):
         dummy()
-        pass
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -125,14 +115,12 @@ if __name__ == '__main__':
 
 
 # unit test cases
-'''
-1. Number of retrived documents must equal number of files in ZIP with extension XML
-2. No words should be filtered out if postags is None, filter_stopwords is False and min_token_size is 0
-   Test: Retrieved word count equals number of distinct words in corpus
-3. If min_token_size > 0 then there cannot exist any word in corpus len < min_token_size
-4. If filter_stopwords is true then [ x for x in corpus x in stopwords ] = [ ]
-5. If postags =
-6. If lemma = False then non lemmatize words should exist (test på plural, testa på specifika ord)
-7. token should not be interpukntering
-8. Test lowercase
-'''
+# 1. Number of retrived documents must equal number of files in ZIP with extension XML
+# 2. No words should be filtered out if postags is None, filter_stopwords is False and min_token_size is 0
+#    Test: Retrieved word count equals number of distinct words in corpus
+# 3. If min_token_size > 0 then there cannot exist any word in corpus len < min_token_size
+# 4. If filter_stopwords is true then [ x for x in corpus x in stopwords ] = [ ]
+# 5. If postags =
+# 6. If lemma = False then non lemmatize words should exist (test på plural, testa på specifika ord)
+# 7. token should not be interpukntering
+# 8. Test lowercase

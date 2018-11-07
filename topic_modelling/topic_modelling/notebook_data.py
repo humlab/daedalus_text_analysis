@@ -1,33 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import os
 import pandas as pd
-from common.utility import FileUtility
-from gensim.models.ldamodel import LdaModel
-from gensim.corpora import MmCorpus
+from common.file_utility import FileUtility
+import common.utility as utility
 
 join = os.path.join
-logger = logging.getLogger('NotebookDataGenerator')
-logger.setLevel(logging.INFO)
-'''
-OK model.id2word
-model.get_document_topics
-  OK model.load_document_topics()
-OK model.show_topics(model.num_topics, num_words=num_words, formatted=False)
-OK model.num_topics
-OK model.alpha
-self.store.load_gensim_lda_model()
-'''
+logger = utility.getLogger('NotebookDataGenerator')
+
 class NotebookDataGenerator():
+    """Class that prepares and extracts various data from LDA model.
+    Main purpose is to prepare data for Jupyter notebooks
+    """
 
     def __init__(self, store):
         self.store = store
 
-    """
-    Class that prepares and extracts various data from LDA model.
-    Main purpose is to prepare data for Jupyter notebooks
-    """
 
     def _compile_dictionary(self, lda):
         logger.info('Compiling dictionary...')
@@ -158,7 +146,7 @@ class NotebookDataGenerator():
             filename = join(self.store.target_folder, 'result_{}_{}.csv'.format(self.store.basename, dname))
 
             if not os.path.exists(filename):
-                logger.info('Extracting sheet {} to CSV...'.format(dname))
+                logger.info('Extracting sheet: %s...', dname)
                 df.to_csv(filename, sep='\t')
 
 

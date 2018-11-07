@@ -5,12 +5,11 @@ import warnings
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
 import logging
-import os
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from gensim import models, matutils
 from gensim.corpora import Dictionary
-from common.utility import FileUtility
+from common.file_utility import FileUtility
 from .lda_mallet_service import LdaMalletService
 
 logger = logging.getLogger(__name__)
@@ -61,9 +60,8 @@ def compute(corpus, store, options):
     """
 
     if corpus is not None:
-        '''
-        Convert corpus to MM format. Otherwise assume MM-corpus is on disk
-        '''
+
+        # Convert corpus to MM format. Otherwise assume MM-corpus is on disk
         store.store_corpus(corpus)
         store.store_dictionary(corpus.dictionary)
 
@@ -93,9 +91,7 @@ def compute(corpus, store, options):
         model_gensim = models.LdaModel(corpus=mm, id2word=dictionary, **engine_option)
         result_model = model_gensim
 
-    '''
-    Persist gensim model to disk
-    '''
+    # Persist gensim model to disk
     store.store_gensim_lda_model(model_gensim)
 
     return result_model

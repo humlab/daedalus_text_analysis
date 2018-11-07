@@ -25,7 +25,7 @@ class ZipFileIterator(object):
                         yield os.path.basename(filename), content
 
 class ZipReader(object):
-    
+
     def __init__(self, zip_archive, pattern, filenames=None):
         self.zip_archive = zip_archive
         self.pattern = pattern
@@ -34,23 +34,19 @@ class ZipReader(object):
 
     def get_archive_filenames(self, pattern):
         with zipfile.ZipFile(self.zip_archive) as zf:
-            return [ name for name in zf.namelist() if fnmatch.fnmatch(name, pattern) ]
-    
+            filenames = zf.namelist()
+        return [ name for name in filenames if fnmatch.fnmatch(name, pattern) ]
+
     def __iter__(self):
 
         with zipfile.ZipFile(self.zip_archive) as zip_file:
             for filename in self.filenames:
-                try:
-                    if filename not in self.archive_filenames:
-                        continue
-                    with zip_file.open(filename, 'rU') as text_file:
-                        content = text_file.read().decode('utf-8')
-                        #for f in self.transforms:
-                        #    content = f(content)
-                        yield filename, content
-                except:
-                    raise
-                    
+                if filename not in self.archive_filenames:
+                    continue
+                with zip_file.open(filename, 'r') as text_file:
+                    content = text_file.read().decode('utf-8')
+                    yield filename, content
+
 def store_documents_to_archive(archive_name, documents):
     '''
     Stores documents [(name, tokens), (name, tokens), ..., (name, tokens)] as textfiles in a new zip-files
@@ -58,4 +54,3 @@ def store_documents_to_archive(archive_name, documents):
     with zipfile.ZipFile(archive_name, 'w', zipfile.ZIP_DEFLATED) as xip:
         for (filename, document) in documents:
             xip.writestr(filename, ' '.join(document))
-            

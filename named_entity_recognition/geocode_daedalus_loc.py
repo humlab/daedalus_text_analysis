@@ -3,10 +3,10 @@ from geopy.geocoders import GoogleV3# GeoNames, Nominatim, GoogleV3     # if exp
 from . geocode_loc_tags import assign_geocodes, load_swener_tags, get_country
 import numpy as np
 import pandas as pd
-from common import FileUtility
-import logging
+import common.file_utility as file_utility
+import common.utility as utility
 
-logger = logging.getLogger(__name__)
+logger = utility.getLogger(__name__)
 
 def setup_unique_locations_dataframe(df_tags, geocoded_filename):
 
@@ -19,7 +19,7 @@ def setup_unique_locations_dataframe(df_tags, geocoded_filename):
     df['country'] = np.nan
     df = df.set_index('entity')
 
-    df_geocoded = FileUtility.read_excel(filename=geocoded_filename, sheet='Sheet1').set_index('entity')
+    df_geocoded = file_utility.FileUtility.read_excel(filename=geocoded_filename, sheet='Sheet1').set_index('entity')
     return df.combine_first(df_geocoded)
 
 def assign_country_to_locations(df):
@@ -31,12 +31,12 @@ def assign_country_to_locations(df):
 def process_geocoding(df_tags, geolocator, geocoded_filename, geocoded_output_filename):
     df_locations = setup_unique_locations_dataframe(df_tags, geocoded_filename)
     pending_count = len(df_locations[(df_locations['processed'] != 1.0)])
-    logger.info("Pending count: {0}".format(pending_count))
+    logger.info("Pending count: %s", pending_count)
     if pending_count > 0:
         while True:
             hits = assign_geocodes(geolocator, df_locations)
             if hits == 0: break
-            FileUtility.save_to_excel(df_locations, geocoded_output_filename)
+            file_utility.FileUtility.save_to_excel(df_locations, geocoded_output_filename)
     logger.info("Done!")
     return df_locations
 
@@ -61,22 +61,22 @@ def main(do_geocoding=False, do_tags_cleanup=False, do_assign_country=False, do_
     if do_tags_cleanup:
         df_tags = load_swener_tags(tags_filename)
         df_loc_tags = df_tags[df_tags.category.str.contains('LOC')]
-        FileUtility.save_excel((df_loc_tags, 'Sheet1'), clean_location_tags_filename)
+        file_utility.FileUtility.save_excel((df_loc_tags, 'Sheet1'), clean_location_tags_filename)
     else:
-        df_loc_tags = FileUtility.read_excel(clean_location_tags_filename, 'Sheet1')
+        df_loc_tags = file_utility.FileUtility.read_excel(clean_location_tags_filename, 'Sheet1')
 
     if do_geocoding:
         df_locations = process_geocoding(df_loc_tags, geolocator, geocoded_filename, new_geocoded_filename)
     else:
-        df_locations = FileUtility.read_excel(geocoded_filename, 'Sheet1')\
+        df_locations = file_utility.FileUtility.read_excel(geocoded_filename, 'Sheet1')\
             .set_index('entity')
 
     if do_assign_country:
         assign_country_to_locations(df_locations)
-        FileUtility.save_excel((df_locations,'Sheet1'),  new_geocoded_filename)
+        file_utility.FileUtility.save_excel((df_locations,'Sheet1'),  new_geocoded_filename)
 
     if do_merge_tags_with_geocodes:
         df_geocoded_result = apply_geocodes(df_loc_tags, df_locations)
-        FileUtility.save_excel((df_geocoded_result,'Sheet1'),  geocoded_location_tags_filename)
+        file_utility.FileUtility.save_excel((df_geocoded_result,'Sheet1'),  geocoded_location_tags_filename)
 
 main()

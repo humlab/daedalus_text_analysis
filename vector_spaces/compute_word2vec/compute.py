@@ -1,14 +1,12 @@
 import gzip
 import shutil
-import os
 import gensim.models
 import nltk.corpus
 import logging
-import pandas as pd
 from common import FileUtility
 from . model_store import ModelStore
 from corpora.raw_text_corpus import RawTextCorpus
-from corpora.zip_iterator import ZipFileIterator
+from corpora.zip_utility import ZipFileIterator
 
 logging.basicConfig(format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO)
 

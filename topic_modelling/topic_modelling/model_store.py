@@ -45,14 +45,14 @@ class ModelStore():
         prefix = self.options.get("prefix", '') or ''
         return "{}{}{}{}{}{}{}{}{}".format(
             '{}_{}_'.format(time.strftime("%Y%m%d"), prefix),
-            'k={}'.format(engine_opts.get("num_topics", 0)),
+            'T{}'.format(engine_opts.get("num_topics", 0)),
             '_'.join(postags.split('|')),
-            '_no_chunks' if self.options.get("chunk_size", None) is None else '_chunks={}'.format(self.options.get("chunk_size", 0)),
-            #'_i{}'.format(engine_opts.get("iterations", 0)),
-            '_lc' if self.options.get("lowercase", False) else '',
-            '_prune_at_{}'.format(prune_at) if prune_at != 2000000 else '',
-            '_dfs_min_{}'.format(dfs_min) if dfs_min > 0 else '',
-            '_dfs_max_{}'.format(dfs_max) if dfs_max > 0 else '',
+            '' if self.options.get("chunk_size", None) is None else '_B{}'.format(self.options.get("chunk_size", 0)),
+            #  '_I{}'.format(engine_opts.get("iterations", 0)),
+            '_LC' if self.options.get("lowercase", False) else '',
+            '_X{}'.format(prune_at) if prune_at != 2000000 else '',
+            '_DFS1{}'.format(dfs_min) if dfs_min > 0 else '',
+            '_DFS2{}'.format(dfs_max) if dfs_max > 0 else '',
             '_{}'.format(self.options.get('engine_name', '').lower()))
 
     def store_mallet_model(self, model):

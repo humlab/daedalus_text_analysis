@@ -17,32 +17,42 @@ class SparvPoster_pycurl():
 
     def request(self, url, headers, params, text):
         buffer = BytesIO()
-        curl = pycurl.Curl()
+        curl = pycurl.Curl()  # pylint: disable=I1101
         curl.setopt(curl.POST, True)
         curl.setopt(curl.URL, url)
         curl.setopt(curl.WRITEDATA, buffer)
         # curl.setopt(curl.FOLLOWLOCATION, True)
-        curl.setopt(pycurl.HTTPHEADER, [x + ':' + y for x, y in headers.items()])
+        curl.setopt(pycurl.HTTPHEADER, [x + ':' + y for x, y in headers.items()])  # pylint: disable=I1101
         curl.setopt(curl.HTTPPOST, [
             ('files[]', (
                 curl.FORM_BUFFER, 'fileupload.txt',
                 curl.FORM_BUFFERPTR, text.encode('utf-8'),
             )),
         ])
-        curl.setopt(pycurl.SSL_VERIFYPEER, 0)
-        curl.setopt(pycurl.SSL_VERIFYHOST, 0)
+        curl.setopt(pycurl.SSL_VERIFYPEER, 0)  # pylint: disable=I1101
+        curl.setopt(pycurl.SSL_VERIFYHOST, 0)  # pylint: disable=I1101
         curl.perform()
         curl.close()
 
         body = buffer.getvalue()
         return body.decode('utf-8')
 
-import re
-hyphen_regexp = re.compile(r'\b(\w+)-\s*\r?\n\s*(\w+)\b', re.UNICODE)
+from corpora.corpus_source_reader import remove_hyphens
+
+#import re
+#hyphen_regexp = re.compile(r'\b(\w+)-\s*\r?\n\s*(\w+)\b', re.UNICODE)
+#def remove_hyphens(self, text):
+#    result = re.sub(hyphen_regexp, r"\1\2\n", text)
+#    return result
+
+class SparvAnnotateException(Exception):
+    pass
 
 class AnnotateService:
 
-    def __init__(self, settings=None, transforms=[]):
+    def __init__(self, settings=None, transforms=None):
+
+        transforms = transforms or []
 
         self.url = 'https://ws.spraakbanken.gu.se/ws/sparv/v2//upload?'
         self.headers = {
@@ -90,12 +100,8 @@ class AnnotateService:
         }
 
         self.transforms = transforms or []
-        self.transforms.append(self.remove_hyphens)
+        self.transforms.append(remove_hyphens)
         self.transforms.append(html.escape)
-
-    def remove_hyphens(self, text):
-        result = re.sub(hyphen_regexp, r"\1\2\n", text)
-        return result
 
     def apply_transforms(self, text):
         for ft in self.transforms:
@@ -118,17 +124,23 @@ class AnnotateService:
         if response_text is None:
             return None
 
+
         url = self.parse_response(response_text)
+
         if url == '':
             return None
 
-        return self.download_file(url, target_filename)
+        local_filename = self.download_file(url, target_filename)
+        return local_filename
 
     def parse_response(self, response_text):
-        root = etree.fromstring(response_text)
+        root = etree.fromstring(response_text) # pylint: disable=I1101
+        if len(root.xpath("//error")) > 0:
+            error_text = root.xpath("//error")[0].text
+            raise SparvAnnotateException(error_text)
         if len(root.xpath("//corpus")) > 0:
             return root.xpath("//corpus")[0].get('link', '')
-        return ''
+        raise SparvAnnotateException(response_text)
 
     def download_file(self, url, local_filename):
         r = requests.get(url, stream=True)
@@ -138,11 +150,14 @@ class AnnotateService:
                     f.write(chunk)
         return local_filename
 
+def store_text_with_encoding(source_text, target_filename, source_encoding="cp1252", target_encoding="utf-8"):
+    with open(target_filename, "w", encoding=target_encoding) as target:
+        target.write(source_text.decode(source_encoding))
 
 class ArchiveAnnotater:
 
-    def __init__(self, settings=None, transforms=[]):
-        self.service = AnnotateService(settings, transforms)
+    def __init__(self, settings=None, transforms=None):
+        self.service = AnnotateService(settings, transforms or [])
 
     def annotate_content(self, content, target_file):
 
@@ -161,38 +176,54 @@ class ArchiveAnnotater:
 
         result_zf = zipfile.ZipFile(target_filename, 'w', zipfile.ZIP_DEFLATED)
         with zipfile.ZipFile(source_filename) as zf:
-            namelist = [x for x in zf.namelist() if x.endswith('txt')]
+            namelist = sorted([x for x in zf.namelist() if x.endswith('txt')])
             file_count = len(namelist)
             counter = 0
             for article_name in namelist:
 
-                basename = os.path.splitext(article_name)[0]
-                download_name = os.path.join(target_folder, basename + '.zip')
-                xml_name = basename + '.xml'
+                try:
+                    print('Processing: {}'.format(article_name))
+                    basename = os.path.splitext(article_name)[0]
+                    download_name = os.path.join(target_folder, basename + '.zip')
+                    xml_name = basename + '.xml'
 
-                if os.path.isfile(os.path.join(target_folder, xml_name)):
-                    logger.warning('WARNING: File {} exists, skipping...'.format(xml_name))
-                    continue
+                    if os.path.isfile(os.path.join(target_folder, xml_name)):
+                        logger.warning('WARNING: File {} exists, skipping...'.format(xml_name))
+                        continue
 
-                with zf.open(article_name) as tf:
-                    content = tf.read().decode('utf8')
+                    with zf.open(article_name) as tf:
+                        data = tf.read()
 
-                xml = self.annotate_content(content, download_name)
+                    content = None
+                    try:
+                        content = data.decode('utf-8')
+                    except UnicodeDecodeError as ex:
+                        char = str(ex).split(' ')[5]
+                        logger.error('Skipped %s: %s', article_name, char)
+                        temp_folder = os.path.join(target_folder, 'temp/')
+                        store_text_with_encoding(data, os.path.join(temp_folder, article_name), source_encoding='cp1252', target_encoding='utf-8')
+                        raise SparvAnnotateException('Failed [UnicodeDecodeError]: ' + article_name)
 
-                if xml is None:
-                    logger.error('FAILED: {}...'.format(article_name))
-                    continue
+                    xml = self.annotate_content(content, download_name)
 
-                result_zf.writestr(xml_name, xml)
+                    if xml is None:
+                        logger.error('FAILED: %s...', article_name)
+                        raise SparvAnnotateException('Failed [Empty XML]: ' + article_name)
 
-                if write_xml_file:
-                    with io.open(os.path.join(target_folder, xml_name), 'w', encoding='utf8') as f:
-                        f.write(xml)
+                    result_zf.writestr(xml_name, xml)
 
-                if delete_sparv_file:
-                    os.remove(download_name)
+                    if write_xml_file:
+                        with io.open(os.path.join(target_folder, xml_name), 'w', encoding='utf8') as f:
+                            f.write(xml)
 
-                counter += 1
-                logger.info('DONE: {} ({}) {}...'.format(counter, file_count, article_name))
-                # if counter == 1:
-                #    break
+                    if delete_sparv_file:
+                        os.remove(download_name)
+
+                except SparvAnnotateException as ex:
+                    logger.error(ex)
+                finally:
+                    counter += 1
+                    output_message = 'DONE: {} ({}) {}...'.format(counter, file_count, article_name)
+                    logger.info(output_message)
+                    print(output_message)
+
