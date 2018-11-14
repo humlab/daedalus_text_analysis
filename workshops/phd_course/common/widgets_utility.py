@@ -1,11 +1,79 @@
-# from __future__ import print_function
+import sys
+sys.path.insert(0, '.')
 import ipywidgets as widgets
-from common.utility import extend
-from common.widgets_config import glyph_hover_js_code, slider, dropdown, years_widget
+import common.utility as utility
 from bokeh.models import ColumnDataSource, CustomJS
 
 BUTTON_STYLE = dict(description_width='initial', button_color='lightgreen')
+def kwargser(d):
+    args = dict(d)
+    if 'kwargs' in args:
+        kwargs = args['kwargs']
+        del args['kwargs']
+        args.update(kwargs)
+    return args
 
+# FIXME These functions are copied from widgets_config
+
+def toggle(description, value, **kwargs):  # pylint: disable=W0613
+    return widgets.ToggleButton(**kwargser(locals()))
+
+def toggles(description, options, value, **kwopts):  # pylint: disable=W0613
+    return widgets.ToggleButtons(**kwargser(locals()))
+
+def dropdown(description, options, value, **kwargs):  # pylint: disable=W0613
+    return widgets.Dropdown(**kwargser(locals()))
+
+def slider(description, min, max, value, **kwargs):  # pylint: disable=W0613, W0622
+    return widgets.IntSlider(**kwargser(locals()))
+
+def rangeslider(description, min, max, value, **kwargs):  # pylint: disable=W0613, W0622
+    return widgets.IntRangeSlider(**kwargser(locals()))
+
+def sliderf(description, min, max, step, value, **kwargs):  # pylint: disable=W0613, W0622
+    return widgets.FloatSlider(**kwargser(locals()))
+
+def progress(min, max, step, value, **kwargs):  # pylint: disable=W0613, W0622
+    return widgets.IntProgress(**kwargser(locals()))
+
+def itext(min, max, value, **kwargs):  # pylint: disable=W0613, W0622
+    return widgets.BoundedIntText(**kwargser(locals()))
+
+def button(description):
+    return widgets.Button(**kwargser(locals()))
+
+def glyph_hover_js_code(element_id, id_name, text_name, glyph_name='glyph', glyph_data='glyph_data'):
+    return """
+        var indices = cb_data.index['1d'].indices;
+        var current_id = -1;
+        if (indices.length > 0) {
+            var index = indices[0];
+            var id = parseInt(""" + glyph_name + """.data.""" + id_name + """[index]);
+            if (id !== current_id) {
+                current_id = id;
+                var text = """ + glyph_data + """.data.""" + text_name + """[id];
+                $('.""" + element_id + """').html('ID ' + id.toString() + ': ' + text);
+            }
+    }
+    """
+
+def years_widget(**kwopts):
+    default_opts = dict(
+        options=[],
+        value=None,
+        description='Year',
+        layout=widgets.Layout(width='200px')
+    )
+    return widgets.Dropdown(**extend(default_opts, kwopts))
+
+def text_widget(self, element_id=None, default_value='', style='', line_height='20px'):
+    value = "<span class='{}' style='line-height: {};{}'>{}</span>".format(element_id, line_height, style, default_value) if element_id is not None else ''
+    return widgets.HTML(value=value, placeholder='', description='')
+
+def create_text_widget(self, element_id=None, default_value=''):
+    value = "<span class='{}'>{}</span>".format(element_id, default_value) if element_id is not None else ''
+    return widgets.HTML(value=value, placeholder='', description='')
+    
 class WidgetUtility():
 
     @staticmethod
@@ -30,7 +98,11 @@ class WidgetUtility():
         for key, value in kwargs.items():
             setattr(self, key, value)
         # self.__dict__.update(kwargs)
-
+        
+    def reset(self, description=None):
+        if 'progress' in self.__dict__.keys():
+            self.progress.value = 0
+            
     def forward(self, description=None):
         if 'progress' in self.__dict__.keys():
             self.progress.value = self.progress.value + 1
@@ -44,15 +116,15 @@ class WidgetUtility():
             description=label,
             disabled=False
         )
-        opts = extend(opts, kwargs)
+        opts = utility.extend(opts, kwargs)
         return widgets.Dropdown(**opts)
 
     def create_int_slider(self, description, **args):
-        args = extend(dict(min=0, max=0, step=1, value=0, disabled=False, continuous_update=False), args)
+        args = utility.extend(dict(min=0, max=0, step=1, value=0, disabled=False, continuous_update=False), args)
         return widgets.IntSlider(description=description, **args)
 
     def create_float_slider(self, description, **args):
-        args = extend(dict(min=0.0, max=0.0, step=0.1, value=0.0, disabled=False, continuous_update=False), args)
+        args = utility.extend(dict(min=0.0, max=0.0, step=0.1, value=0.0, disabled=False, continuous_update=False), args)
         return widgets.FloatSlider(description=description, **args)
 
     def layout_algorithm_widget(self, options, default=None):
